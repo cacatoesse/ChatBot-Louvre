@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musée du Louvre - Art & Histoire</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. VARIABLES & CONFIGURATION (MODULABLE ICI) --- */
+        :root {
+            /* Couleurs */
+            --bg-color: #f9f9f9;       /* Fond général très clair */
+            --text-color: #1a1a1a;     /* Noir charbon pour le texte */
+            --accent-color: #9e8b6b;   /* Or vieilli pour les détails */
+            --white: #ffffff;
+            
+            /* Typographie */
+            --font-serif: 'Playfair Display', serif; /* Titres élégants */
+            --font-sans: 'Lato', sans-serif;         /* Texte courant lisible */
+            
+            /* Espacement */
+            --container-width: 1200px;
+            --section-padding: 80px;
+        }
+
+        /* --- 2. RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 { font-family: var(--font-serif); font-weight: 400; }
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        img { width: 100%; display: block; object-fit: cover; }
+
+        /* --- 3. HEADER & NAV --- */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(249, 249, 249, 0.95);
+            padding: 20px 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .nav-container {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo { font-family: var(--font-serif); font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
+        
+        nav ul { display: flex; list-style: none; gap: 40px; }
+        nav a { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        nav a:hover { color: var(--accent-color); }
+        
+        .btn-billet {
+            border: 1px solid var(--text-color);
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .btn-billet:hover { background: var(--text-color); color: var(--white); }
+
+        /* --- 4. HERO SECTION --- */
+        .hero {
+            height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: url('https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3); /* Assombrit l'image pour lire le texte */
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: var(--white);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+        }
+
+        /* --- 5. GRID EXPOSITIONS --- */
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 2px;
+            background: var(--accent-color);
+            margin: 20px auto 0;
+        }
+
+        .exhibitions { padding: var(--section-padding) 20px; max-width: var(--container-width); margin: 0 auto; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .card {
+            background: var(--white);
+            transition: transform 0.4s ease;
+            cursor: pointer;
+        }
+
+        .card:hover { transform: translateY(-5px); }
+
+        .card-img { height: 350px; overflow: hidden; }
+        .card-img img { height: 100%; transition: transform 0.5s ease; }
+        .card:hover .card-img img { transform: scale(1.05); }
+
+        .card-info { padding: 30px 20px; text-align: center; }
+        .card-date { color: var(--accent-color); font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        .card h3 { font-size: 1.5rem; margin-bottom: 15px; }
+        .card p { font-size: 0.95rem; color: #666; }
+
+        /* --- 6. INFOS PRATIQUES (Layout asymétrique) --- */
+        .infos {
+            background: var(--white);
+            padding: var(--section-padding) 20px;
+        }
+
+        .infos-container {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .infos-text { flex: 1; min-width: 300px; }
+        .infos-image { flex: 1; min-width: 300px; height: 500px; }
+        
+        .info-item { margin-bottom: 30px; border-left: 1px solid var(--accent-color); padding-left: 20px; }
+        .info-item h4 { font-family: var(--font-serif); font-size: 1.2rem; margin-bottom: 5px; }
+
+        /* --- 7. FOOTER --- */
+        footer {
+            background: var(--text-color);
+            color: var(--white);
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .footer-links { margin-bottom: 30px; }
+        .footer-links a { color: #ccc; margin: 0 15px; font-size: 0.9rem; }
+        .copyright { font-size: 0.8rem; opacity: 0.6; }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .nav-container { flex-direction: column; gap: 20px; }
+            nav ul { gap: 20px; font-size: 0.8rem; }
+            .infos-container { flex-direction: column; }
+        }
+
+        /* --- 8. MODULE CHATBOT --- */
+        
+        /* Conteneur global */
+        .chat-widget-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+        .chat-widget-container > * { pointer-events: all; }
+
+        /* --- LE BOUTON FLOTTANT (AVEC WAVES) --- */
+        .chat-toggle-btn {
+            width: 70px;
+            height: 70px;
+            background: var(--white);
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            position: relative; /* Indispensable pour centrer les ondes */
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 2002;
+        }
+
+        /* CRÉATION DES ONDES (WAVES) */
+        .chat-toggle-btn::before,
+        .chat-toggle-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background: var(--accent-color); /* Couleur Or */
+            opacity: 0;
+            z-index: -1; /* Derrière le bouton blanc */
+        }
+
+        /* Animation de l'onde */
+        .chat-toggle-btn::before {
+            animation: pulse-wave 2.5s infinite ease-out;
+        }
+
+        /* Si le chat est OUVERT, on arrête les ondes pour plus de calme */
+        .chat-toggle-btn.btn-active::before,
+        .chat-toggle-btn.btn-active::after {
+            animation: none;
+            display: none;
+        }
+
+        /* DÉFINITION DE L'ANIMATION */
+        @keyframes pulse-wave {
+            0% {
+                transform: scale(1);
+                opacity: 0.3; /* Commence semi-transparent */
+            }
+            100% {
+                transform: scale(1.5); /* S'agrandit x2.2 */
+                opacity: 0;   /* Devient totalement transparent */
+            }
+        }
+
+        /* Effet au survol : Grossissement léger */
+        .chat-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        }
+
+        /* L'IMAGE DU LOGO */
+        .chat-toggle-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: all 0.4s ease;
+            position: absolute; /* Superposition */
+            opacity: 1;
+            transform: rotate(0deg);
+            padding-bottom: 6px;
+        }
+
+        /* LA CROIX DE FERMETURE (SPAN) */
+        .chat-toggle-btn span {
+            position: absolute;
+            color: var(--accent-color); /* Couleur Or */
+            font-size: 2rem;
+            font-family: var(--font-sans);
+            font-weight: 300;
+            opacity: 0;
+            transform: rotate(-90deg); /* Départ tourné */
+            transition: all 0.4s ease;
+        }
+
+        /* --- ÉTAT ACTIF (QUAND OUVERT) --- */
+        
+        /* Le bouton reste grossi ou reprend sa taille (au choix, ici taille normale) */
+        .chat-toggle-btn.btn-active {
+            transform: scale(1); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        /* L'image tourne et disparaît */
+        .chat-toggle-btn.btn-active img {
+            opacity: 0;
+            transform: rotate(270deg);
+            scale: 0.3;
+        }
+
+        /* La croix apparaît et se redresse */
+        .chat-toggle-btn.btn-active span {
+            opacity: 1;
+            transform: rotate(0deg);
+        }
+
+
+        /* --- LA FENÊTRE DE CHAT --- */
+        .chat-window {
+            width: 350px;
+            height: 450px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin-bottom: 20px;
+            margin-right: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 2001;
+            
+            /* Animation d'apparition */
+            opacity: 0;
+            visibility: hidden;
+            transform-origin: bottom right;
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .chat-window.chat-open {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+        }
+
+        /* RESTE DU STYLE (Header, Messages, Input) */
+        .chat-header { background: var(--accent-color); color: var(--white); padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h3 { font-family: var(--font-serif); font-size: 1.1rem; margin: 0; font-weight: 400; }
+        .close-chat-btn { display: none; } /* On cache la croix du header car on l'a sur le bouton maintenant */
+        
+        .chat-messages { flex: 1; padding: 20px; background: #fcfcfc; overflow-y: auto; font-size: 0.9rem; }
+        .message { margin-bottom: 15px; max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; }
+        .message.bot { background: #f0f0f0; color: var(--text-color); border-bottom-left-radius: 2px; }
+        .message.user { background: var(--accent-color); color: var(--white); margin-left: auto; border-bottom-right-radius: 2px; }
+        
+        .chat-input-area { padding: 15px; border-top: 1px solid #eee; display: flex; background: var(--white); }
+        .chat-input-area input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 10px 15px; outline: none; transition: 0.3s; }
+        .chat-input-area input:focus { border-color: var(--accent-color); }
+        .send-btn { background: none; border: none; color: var(--accent-color); font-size: 1.2rem; margin-left: 10px; cursor: pointer; }
+
+        @media (max-width: 480px) {
+            .chat-window { width: calc(100vw - 40px); height: 60vh; right: 20px; bottom: 90px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-container">
+            <div class="logo">Louvre</div>
+            <nav>
+                <ul>
+                    <li><a href="#expos">Expositions</a></li>
+                    <li><a href="#collections">Collections</a></li>
+                    <li><a href="#infos">Visite</a></li>
+                    <li><a href="#" class="btn-billet">Billetterie</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>L'ART INTEMPOREL</h1>
+            <p>Plongez au cœur de l'histoire et de la beauté. Une collection unique à travers les siècles.</p>
+            <a href="#expos" class="btn-billet" style="border-color: #fff; color: #fff;">Découvrir</a>
+        </div>
+    </section>
+
+    <section id="expos" class="exhibitions">
+        <h2 class="section-title">À l'Affiche</h2>
+        <div class="grid">
+            <article class="card">
+                <div class="card-img">
+                    <img src="https://images.unsplash.com/photo-1577720580479-7d839d829c73?q=80&w=1974&auto=format&fit=crop" alt="Sculpture classique">
+                </div>
+                <div class="card-info">
+                    <span class="card-date">JUSQU'AU 30 OCTOBRE</span>
+                    <h3>Renaissance Italienne</h3>
+                    <p>Redécouvrez les maîtres de la lumière et de la perspective dans une rétrospective inédite.</p>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-img">
+                    <img src="https://images.unsplash.com/photo-1545989253-02cc26577f88?q=80&w=2070&auto=format&fit=crop" alt="Peinture à l'huile">
+                </div>
+                <div class="card-info">
+                    <span class="card-date">COLLECTION PERMANENTE</span>
+                    <h3>Le Siècle d'Or</h3>
+                    <p>Une immersion dans les paysages hollandais et les scènes de vie du XVIIe siècle.</p>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-img">
+                    <img src="https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=1974&auto=format&fit=crop" alt="Art moderne">
+                </div>
+                <div class="card-info">
+                    <span class="card-date">NOUVEAUTÉ</span>
+                    <h3>Dialogues Modernes</h3>
+                    <p>Quand l'art contemporain rencontre l'architecture classique du palais.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section id="infos" class="infos">
+        <div class="infos-container">
+            <div class="infos-text">
+                <h2 class="section-title" style="text-align: left; margin-left:0;">Préparer sa visite</h2>
+                
+                <div class="info-item">
+                    <h4>Horaires</h4>
+                    <p>Ouvert tous les jours sauf le mardi.<br>9h00 - 18h00 (Nocturne le vendredi jusqu'à 21h45).</p>
+                </div>
+                
+                <div class="info-item">
+                    <h4>Accès</h4>
+                    <p>Rue de Rivoli, 75001 Paris.<br>Métro : Palais Royal - Musée du Louvre.</p>
+                </div>
+
+                <a href="#" class="btn-billet" style="display:inline-block; margin-top:20px;">Réserver un créneau</a>
+            </div>
+            <div class="infos-image">
+                <img src="https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=1974&auto=format&fit=crop" 
+                    alt="Architecture musée" 
+                    style="height:100%; object-fit:cover;">
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="#">Mécénat</a>
+            <a href="#">Presse</a>
+            <a href="#">Contact</a>
+            <a href="#">Mentions Légales</a>
+        </div>
+        <p class="copyright">&copy; 2026 LOUVRE. Tous droits réservés.</p>
+    </footer>
+
+    <div class="chat-widget-container">
+        
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <h3>Assistant du Musée</h3>
+                <button class="close-chat-btn" onclick="toggleChat()">×</button>
+            </div>
+            
+            <div class="chat-messages">
+                <div class="message bot">
+                    <p>Bonjour. Je suis l'assistant virtuel du musée. Comment puis-je vous aider à préparer votre visite aujourd'hui ?</p>
+                </div>
+                </div>
+            
+            <div class="chat-input-area">
+                <input type="text" placeholder="Écrivez votre message...">
+                <button class="send-btn">➤</button>
+            </div>
+        </div>
+
+        <button class="chat-toggle-btn" onclick="toggleChat()">
+        <span>&#10005;</span> 
+        <img src="../assets/chatbot_logo.png" alt="Chatbot">
+    </button>
+
+    </div>
+
+    <script>
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            const chatBtn = document.querySelector('.chat-toggle-btn');
+            
+            chatWindow.classList.toggle('chat-open');
+            chatBtn.classList.toggle('btn-active');
+        }
+    </script>
+</body>
+</html>
