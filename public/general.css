@@ -1,0 +1,16 @@
+/* --- 1. VARIABLES & CONFIGURATION (MODULABLE ICI) --- */
+        :root {
+            /* Couleurs */
+            --bg-color: #f9f9f9;       /* Fond général très clair */
+            --text-color: #1a1a1a;     /* Noir charbon pour le texte */
+            --accent-color: #9e8b6b;   /* Or vieilli pour les détails */
+            --white: #ffffff;
+            
+            /* Typographie */
+            --font-serif: 'Playfair Display', serif; /* Titres élégants */
+            --font-sans: 'Lato', sans-serif;         /* Texte courant lisible */
+            
+            /* Espacement */
+            --container-width: 1200px;
+            --section-padding: 80px;
+        }

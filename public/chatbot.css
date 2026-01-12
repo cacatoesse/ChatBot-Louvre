@@ -1,0 +1,182 @@
+/* --- 1. VARIABLES & CONFIGURATION (MODULABLE ICI) --- */
+        :root {
+            /* Couleurs */
+            --bg-color: #f9f9f9;       /* Fond général très clair */
+            --text-color: #1a1a1a;     /* Noir charbon pour le texte */
+            --accent-color: #9e8b6b;   /* Or vieilli pour les détails */
+            --white: #ffffff;
+            
+            /* Typographie */
+            --font-serif: 'Playfair Display', serif; /* Titres élégants */
+            --font-sans: 'Lato', sans-serif;         /* Texte courant lisible */
+            
+            /* Espacement */
+            --container-width: 1200px;
+            --section-padding: 80px;
+        }
+
+/* Conteneur global */
+.chat-widget-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    pointer-events: none;
+}
+.chat-widget-container > * { pointer-events: all; }
+
+/* --- LE BOUTON FLOTTANT (AVEC WAVES) --- */
+.chat-toggle-btn {
+    width: 70px;
+    height: 70px;
+    background: var(--white);
+    border-radius: 50%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    position: relative; /* Indispensable pour centrer les ondes */
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 2002;
+}
+
+/* CRÉATION DES ONDES (WAVES) */
+.chat-toggle-btn::before,
+.chat-toggle-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    background: var(--accent-color); /* Couleur Or */
+    opacity: 0;
+    z-index: -1; /* Derrière le bouton blanc */
+}
+
+/* Animation de l'onde */
+.chat-toggle-btn::before {
+    animation: pulse-wave 2.5s infinite ease-out;
+}
+
+/* Si le chat est OUVERT, on arrête les ondes pour plus de calme */
+.chat-toggle-btn.btn-active::before,
+.chat-toggle-btn.btn-active::after {
+    animation: none;
+    display: none;
+}
+
+/* DÉFINITION DE L'ANIMATION */
+@keyframes pulse-wave {
+    0% {
+        transform: scale(1);
+        opacity: 0.3; /* Commence semi-transparent */
+    }
+    100% {
+        transform: scale(1.5); /* S'agrandit x2.2 */
+        opacity: 0;   /* Devient totalement transparent */
+    }
+}
+
+/* Effet au survol : Grossissement léger */
+.chat-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+/* L'IMAGE DU LOGO */
+.chat-toggle-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: all 0.4s ease;
+    position: absolute; /* Superposition */
+    opacity: 1;
+    transform: rotate(0deg);
+    padding-bottom: 6px;
+}
+
+/* LA CROIX DE FERMETURE (SPAN) */
+.chat-toggle-btn span {
+    position: absolute;
+    color: var(--accent-color); /* Couleur Or */
+    font-size: 2rem;
+    font-family: var(--font-sans);
+    font-weight: 300;
+    opacity: 0;
+    transform: rotate(-90deg); /* Départ tourné */
+    transition: all 0.4s ease;
+}
+
+/* --- ÉTAT ACTIF (QUAND OUVERT) --- */
+
+/* Le bouton reste grossi ou reprend sa taille (au choix, ici taille normale) */
+.chat-toggle-btn.btn-active {
+    transform: scale(1); 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* L'image tourne et disparaît */
+.chat-toggle-btn.btn-active img {
+    opacity: 0;
+    transform: rotate(270deg);
+    scale: 0.3;
+}
+
+/* La croix apparaît et se redresse */
+.chat-toggle-btn.btn-active span {
+    opacity: 1;
+    transform: rotate(0deg);
+}
+
+
+/* --- LA FENÊTRE DE CHAT --- */
+.chat-window {
+    width: 350px;
+    height: 450px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+    overflow: hidden;
+    margin-bottom: 20px;
+    margin-right: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 2001;
+    
+    /* Animation d'apparition */
+    opacity: 0;
+    visibility: hidden;
+    transform-origin: bottom right;
+    transform: scale(0.8) translateY(20px);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-window.chat-open {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+
+/* RESTE DU STYLE (Header, Messages, Input) */
+        .chat-header { background: var(--accent-color); color: var(--white); padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h3 { font-family: var(--font-serif); font-size: 1.1rem; margin: 0; font-weight: 400; }
+        .close-chat-btn { display: none; } /* On cache la croix du header car on l'a sur le bouton maintenant */
+        
+        .chat-messages { flex: 1; padding: 20px; background: #fcfcfc; overflow-y: auto; font-size: 0.9rem; }
+        .message { margin-bottom: 15px; max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; }
+        .message.bot { background: #f0f0f0; color: var(--text-color); border-bottom-left-radius: 2px; }
+        .message.user { background: var(--accent-color); color: var(--white); margin-left: auto; border-bottom-right-radius: 2px; }
+        
+        .chat-input-area { padding: 15px; border-top: 1px solid #eee; display: flex; background: var(--white); }
+        .chat-input-area input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 10px 15px; outline: none; transition: 0.3s; }
+        .chat-input-area input:focus { border-color: var(--accent-color); }
+        .send-btn { background: none; border: none; color: var(--accent-color); font-size: 1.2rem; margin-left: 10px; cursor: pointer; }
+
+        @media (max-width: 480px) {
+            .chat-window { width: calc(100vw - 40px); height: 60vh; right: 20px; bottom: 90px; }
+        }
