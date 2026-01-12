@@ -2,9 +2,10 @@ import requests
 import json
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL_NAME = "llama3"
+MODEL_NAME = "gpt-oss:120b-cloud"
 
 def ask_llm(messages: list[dict]) -> str:
+    print(json.dumps(messages, indent=2))
     payload = {
         "model": MODEL_NAME,
         "messages": messages,

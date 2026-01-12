@@ -2,6 +2,8 @@ import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from chatbot.core import ask_chatbot
 from mcp.server import call_tool 
 
 # Initialisation de l'application
@@ -12,9 +14,17 @@ PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 
 app.mount("/public", StaticFiles(directory=PUBLIC_DIR), name="public")
 
+class ChatMessage(BaseModel):
+    message: str
+
 @app.get("/")
 async def read_root():
     return FileResponse(os.path.join(PUBLIC_DIR, "index.html"))
+
+@app.post("/api/chat")
+def chat(message: ChatMessage):
+    response = ask_chatbot(message.message)
+    return {"response": response}
 
 @app.get("/health")
 def health():
