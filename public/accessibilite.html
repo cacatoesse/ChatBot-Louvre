@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accessibilité - Louvre</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Lato&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Lato', sans-serif; background: #f9f9f9; color: #1a1a1a; padding: 50px; line-height: 1.8; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { font-family: 'Playfair Display', serif; border-bottom: 2px solid #9e8b6b; padding-bottom: 10px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #9e8b6b; text-decoration: none; }
+        .price-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .price-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .price-table td:last-child { text-align: right; font-weight: bold; }
+    
+    /* Défilement fluide lors du clic */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .anchor-menu {
+            background: #f8f8f8; /* Gris très clair comme sur l'image */
+            border-left: 2px solid #9e8b6b; /* Barre d'accentuation plus fine */
+            margin-bottom: 30px;
+            border-radius: 0 4px 4px 0; /* Optionnel : arrondit légèrement les coins droits */
+        }
+
+        .anchor-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .anchor-menu li a {
+            display: block;
+            padding: 18px 25px; /* Plus d'espace pour un look aéré */
+            color: #1a1a1a;
+            text-decoration: none;
+            border-bottom: 1px solid #eeeeee; /* Ligne de séparation plus discrète */
+            font-size: 1.05rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* On retire la bordure pour le dernier élément du menu */
+        .anchor-menu li:last-child a {
+            border-bottom: none;
+        }
+
+        .anchor-menu li a:hover {
+            background: #f0f0f0;
+            padding-left: 30px; /* Petit effet de décalage au survol */
+            color: #005a5a;
+        }
+
+        /* Espacement pour les sections cibles */
+        .info-section {
+            padding-top: 110px; /* Ajusté selon la hauteur de ton header fixe si tu en as un */
+            margin-top: -110px;
+            margin-bottom: 60px;
+        }
+
+        /*petite barre de séparation*/
+        .separator {
+            border: 0;
+            height: 1px;
+            background: #9e8b6b; /* Gris très clair pour ne pas alourdir le design */
+            margin: 30px auto;   /* Espacement au-dessus et en-dessous de la barre */
+            width: 100%;         /* Prend toute la largeur du conteneur */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <a href="index.html" class="back-link">← Retour à l'accueil</a>
+    <h1>Accessibilité</h1>
+
+    <nav class="anchor-menu">
+        <ul>
+            <li><a href="#accessible-tous">Un musée accessible à tous</a></li>
+            <li><a href="#moteur">Handicap moteur</a></li>
+            <li><a href="#auditif">Handicap auditif</a></li>
+            <li><a href="#visuel">Handicap visuel</a></li>
+            <li><a href="#mental">Handicap mental, psychique ou cognitif</a></li>
+            <li><a href="#sculpture">L'espace de découverte de la sculpture</a></li>
+        </ul>
+    </nav>
+
+    <section id="accessible-tous" class="info-section">
+        <h2>Un musée accessible à tous</h2>
+        <hr class="separator">
+        <h3>Semaine de la solidarité et de l'accessibilité</h3>
+        <h4>Du 26 au 31 janvier 2026</h4>
+        <p>Dans le cadre de cette semaine-événement, le Louvre met en lumière les actions qu’il mène en faveur de tous les publics, dans une démarche résolument inclusive. 
+            Pensée comme un temps de valorisation, de dialogue et de réflexion, cette édition donne la parole aux visiteurs, relais et partenaires de la solidarité et de l’accessibilité. 
+            Elle questionne la place qu’occupent ces voix dans la vie du musée et met en avant la richesse des regards portés sur les collections. 
+            Cette semaine, qui propose des formats participatifs, innovants et adaptés, témoigne de l’engagement quotidien des équipes du Louvre auprès des publics les plus fragiles ; elle sera également l’occasion de relancer une instance de pilotage interne sur l’accessibilité au musée.</p>
+        <hr class="separator">
+            <h3>Venir au musée du Louvre</h3>
+        <p>L’entrée du musée est gratuite pour la personne handicapée et un accompagnateur sur présentation d’un justificatif. 
+            La réservation en ligne est fortement recommandée y compris si vous êtes bénéficiaire de la gratuité.</p>
+        <p>L’accès est prioritaire et sans attente aux accueils et contrôles d’accès du musée pour la personne en situation de handicap et son accompagnateur (ou cellule familiale).</p>
+        <h4>En bus</h4>
+        <p>N° 21, 27, 39, 67, 68, 69, 72, 74, 85, 95 <br>
+        Toutes les lignes disposent de bus équipés pour les personnes à mobilité réduite.</p>
+        <h4>En métro</h4>
+        <p>Lignes 1 et 7, station "Palais-Royal / Musée du Louvre"<br>
+        Ligne 14, station "Pyramides"</p>
+        <h4>En voiture</h4>
+        <p>Si vous arrivez en véhicule, des places de stationnement sont réservées pour les personnes en situation de handicap. <br>
+        Plan des places de stationnement réservées dans l'espace public pour les personnes en situation de handicap sur le site internet de la Mairie de Paris.</p>
+        <h4>Parking</h4>
+        <p>Ouvert de 7 h à 23 h, le parking est situé au sous-sol, dans la galerie commerciale du Carrousel du Louvre. Il dispose d'un accès direct vers le musée. L'entrée se situe au 1 avenue du Général-Lemonnier 75001 Paris.
+        <br>Vous pouvez bénéficier d'un tarif réduit dans ce parking. Nous vous invitons à vous rendre à l'espace « Assistance » du musée du Louvre, situé sous la Pyramide. Vous pourrez faire tamponner votre billet de stationnement afin que la réduction soit appliquée.</p>
+        <h4>Dépose-minute</h4>
+        <p>Un dépose-minute est situé place du Carrousel, à hauteur des arrêts de bus 39, 68 et 95.</p>
+        <hr class="separator">
+        <h3>A votre arrivée</h3>
+        <p>Vous pouvez accéder au musée par la Pyramide.<br>
+        Un escalator ou un ascenseur central (le "tube") conduit sous la Pyramide aux espaces d'accueil.</p>
+        <p>L’accès est prioritaire et sans attente aux accueils et contrôles d’accès du musée pour la personne en situation de handicap et son accompagnateur (ou cellule familiale).</p>
+        <h4>Points information</h4>
+        <p>Vous trouverez aux points d'information, sous la Pyramide, les documents nécessaires à votre visite : plan du musée et informations pratiques, calendrier hebdomadaire d'ouverture de salles, parcours adaptés (confort, luminosité, PMR...).</p>
+        <hr class="separator">
+        <h3>Pendant votre visite</h3>
+        <h4>Espace Assistance</h4>
+        <p>Les agents de l'espace Assistance vous aideront à construire votre parcours de visite. Des pliants, des fauteuils roulants, pliants et mobiles, des cannes, des SensoryBag et d’autres dispositifs d’aide à la visite sont mis à votre disposition.</p>
+        <h4>Vestiaires et consigne</h4>
+        <p>Pour votre confort, une consigne est à votre disposition sous la Pyramide pour déposer vos effets personnels en toute sécurité. Les objets déposés doivent être retirés le jour même. Le dépôt d’objets de valeur engage la responsabilité du déposant. 
+        <br>Attention : Les objets de dimensions supérieures à 55 x 35 x 20 cm ne sont pas acceptés dans l’enceinte du musée (espaces d’accueil et salles d’exposition). </p>
+        <hr class="separator">
+        <h3>Confort de visite</h3>
+        <p>Conscients que la visite du musée peut être source de fatigue, nous mettons à votre disposition des fauteuils mobiles en libre-service dans les salles du musée. Vous pouvez les utiliser pour vous asseoir, pour vous appuyer, pour porter des enfants ou encore pour transporter vos affaires.</p>
+        <hr class="separator">
+        <h3>Le registre public d'accessibilité</h3>
+        <p>Conformément aux obligations légales, le musée du Louvre met à disposition de ses visiteurs un Registre Public d’Accessibilité. Ce registre est consultable par tous sur simple demande au sein de l’espace « Assistance » du musée du Louvre, situé sous la Pyramide. 
+        Il contient toutes les informations sur le degré d’accessibilité de l’établissement et de ses prestations.</p>
+    <a href="accessibilite.html" class="back-link">↑ Retour en haut de page</a>
+    </section>
+
+    <section id="moteur" class="info-section">
+        <h2>Handicap moteur</h2>
+        <hr class="separator">
+        <h3>Venir au musée du Louvre</h3>
+        <p>L’entrée du musée est gratuite pour la personne handicapée et un accompagnateur sur présentation d’un justificatif. 
+        La réservation en ligne est fortement recommandée y compris si vous êtes bénéficiaire de la gratuité.</p>
+        <p>L’accès est prioritaire et sans attente aux accueils et contrôles d’accès du musée pour la personne en situation de handicap et son accompagnateur (ou cellule familiale).</p>
+        <hr class="separator">
+        <h3>Accès</h3>
+        <h4>Par la Pyramide</h4>
+        <p>Un ascenseur central (le "tube") conduit sous la Pyramide aux espaces d'accueil.</p>
+        <h4>Par la galerie du Carrousel</h4>
+        <p>En arrivant du parking ou en entrant au 99 rue de Rivoli.
+        <br>Pour accéder aux espaces d’accueil sous la Pyramide, deux ascenseurs et des Escalators sont disponibles.
+        <br>Adressez-vous aux agents de la galerie du Carrousel : ils vous guideront vers les ascenseurs. 
+        Arrivés au niveau de la galerie commerciale, dirigez-vous vers la pyramide inversée, 50 mètres plus loin.
+        Vous trouverez alors les contrôles et portiques de sécurité pour entrer dans le musée.</p>
+        <hr class="separator">
+        <h4>Services dédies</h4>
+        <p>Des fauteuils roulants, pliants et cannes avec embouts caoutchouc sont disponibles gratuitement. Adressez-vous à l'espace "Assistance" situé sous la Pyramide. Le prêt est consenti en échange d'une pièce d'identité. 
+        Tout matériel emprunté au musée ne peut sortir de l'enceinte de l'établissement. 
+        Faites attention, les cannes avec embouts métalliques ne sont pas autorisées.</p>
+        <p>Dans la salle de l’auditorium, 10 places sont accessibles aux personnes en fauteuil roulant et 14 points de connexion sont prévus pour le branchement des fauteuils roulants électriques.</p>
+        <p>Des sanitaires équipés pour les personnes à mobilité réduite sont disponibles sous la Pyramide et dans les salles du musée. Pour les situer, adressez-vous aux chargés d'accueil aux points d'information sous la Pyramide.</p>
+        <a href="accessibilite.html" class="back-link">↑ Retour en haut de page</a>
+    </section>
+
+    <section id="auditif" class="info-section">
+        <h2>Handicap auditif</h2>
+        <hr class="separator">
+        <h3>Venir au musée du Louvre</h3>
+        <p>L’entrée du musée est gratuite pour la personne handicapée et un accompagnateur sur présentation d’un justificatif. 
+        La réservation en ligne est fortement recommandée y compris si vous êtes bénéficiaire de la gratuité.</p>
+        <p>L’accès est prioritaire et sans attente aux accueils et contrôles d’accès du musée pour la personne en situation de handicap et son accompagnateur (ou cellule familiale).</p>
+        <hr class="separator">
+        <h3>Accès</h3>
+        <h4>Par la Pyramide</h4>
+        <p>Un ascenseur central (le "tube") conduit sous la Pyramide aux espaces d'accueil.</p>
+        <h4>Par la galerie du Carrousel</h4>
+        <p>En arrivant du parking ou en entrant au 99 rue de Rivoli.
+        <br>Pour accéder aux espaces d’accueil sous la Pyramide, deux ascenseurs et des Escalators sont disponibles.
+        <br>Adressez-vous aux agents de la galerie du Carrousel : ils vous guideront vers les ascenseurs. 
+        Arrivés au niveau de la galerie commerciale, dirigez-vous vers la pyramide inversée, 50 mètres plus loin.
+        Vous trouverez alors les contrôles et portiques de sécurité pour entrer dans le musée.</p>
+        <hr class="separator">
+        <h4>Visites et espaces adaptés</h4>
+        <p>Des visites adaptées conduites par un guide-conférencier formé aux techniques de diction et des visites en LSF conduites par un guide conférencier sourd signeur sont régulièrement proposées. </p>
+        <p>L'espace de découverte de la sculpture dédié à la sculpture du Moyen Âge au XIXe siècle dispose de dispositifs adaptés.</p>
+        <hr class="separator">
+        <h4>Services dédiés</h4>
+        <p>Pour les visiteurs appareillés, des boucles magnétiques sont installées sous la Pyramide, aux points d'information, aux espaces billetterie, à l'accueil des groupes, à l'espace « Assistance » ainsi qu'à l'Auditorium.</p>
+    <a href="accessibilite.html" class="back-link">↑ Retour en haut de page</a>
+    </section>
+
+    <section id="visuel" class="info-section">
+        <h2>Handicap visuel</h2>
+        <hr class="separator">
+        <h3>Venir au musée du Louvre</h3>
+        <p>L’entrée du musée est gratuite pour la personne handicapée et un accompagnateur sur présentation d’un justificatif. 
+        La réservation en ligne est fortement recommandée y compris si vous êtes bénéficiaire de la gratuité.</p>
+        <p>L’accès est prioritaire et sans attente aux accueils et contrôles d’accès du musée pour la personne en situation de handicap et son accompagnateur (ou cellule familiale).</p>
+        <hr class="separator">
+        <h3>Accès</h3>
+        <h4>Par la Pyramide</h4>
+        <p>Un ascenseur central (le "tube") conduit sous la Pyramide aux espaces d'accueil.</p>
+        <h4>Par la galerie du Carrousel</h4>
+        <p>En arrivant du parking ou en entrant au 99 rue de Rivoli.
+        <br>Pour accéder aux espaces d’accueil sous la Pyramide, deux ascenseurs et des Escalators sont disponibles.
+        <br>Adressez-vous aux agents de la galerie du Carrousel : ils vous guideront vers les ascenseurs. 
+        Arrivés au niveau de la galerie commerciale, dirigez-vous vers la pyramide inversée, 50 mètres plus loin.
+        Vous trouverez alors les contrôles et portiques de sécurité pour entrer dans le musée.</p>
+        <hr class="separator">
+        <h4>Visites guidées</h4>
+        <p>Des visites descriptives et tactiles sont régulièrement proposées.</p>
+        <hr class="separator">
+        <h4>Les espaces adaptés</h4>
+        <h5>Le Louvre Médiéval</h5>
+        <p>Il retrace l’histoire et les transformations du palais du Louvre. Des dispositifs tactiles offrent des repères pour se représenter l'espace environnant et le développement architectural du palais.</p>
+        <h5>L'espace de découverte de la sculpture</h5>
+        <p>Un espace pédagogique et inclusif dédié à la sculpture du Moyen Âge au XIXe siècle disposant de dispositifs tactiles</p>
+        <h5>La galerie Campana</h5>
+        <p>Au cœur de cette galerie dédiée à la céramique grecque, profitez de dispositifs tactiles (actuellement fermée).</p>
+        <hr class="separator">
+        <h4>Les services dédiés</h4>
+        <p>Les chiens guides d’assistance et les aides optiques sont autorisés.</p>
+        <p>Des pliants sont proposés gratuitement aux visiteurs. Adressez-vous aux chargés d’accueil à l'espace "Assistance" situé sous la Pyramide. Le prêt est consenti en échange d'une pièce d'identité. Tout matériel emprunté au musée ne peut sortir de l'enceinte de l'établissement.</p>
+        <p>À votre arrivée, nous vous invitons à vous adresser aux chargés d’accueil aux points d’information situés sous la Pyramide. Ils vous conseilleront sur les parcours à emprunter.</p>
+    <a href="accessibilite.html" class="back-link">↑ Retour en haut de page</a>    
+    </section>
+    </div>
+</body>
+</html>

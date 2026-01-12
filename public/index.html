@@ -75,6 +75,52 @@
             text-transform: uppercase;
         }
         .btn-billet:hover { background: var(--text-color); color: var(--white); }
+        
+        /* Style du conteneur du menu déroulant visit*/
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Style de la liste cachée */
+        .dropdown-content {
+            display: none; /* Caché par défaut */
+            position: absolute;
+            background-color: var(--white);
+            min-width: 200px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.1);
+            z-index: 1000;
+            top: 100%; /* S'affiche juste en dessous du texte */
+            border-top: 2px solid var(--accent-color);
+        }
+
+        /* Style des liens à l'intérieur du menu */
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-transform: none; /* On garde une écriture plus douce */
+            font-size: 0.85rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Changement de couleur au survol des liens du menu */
+        .dropdown-content a:hover {
+            background-color: #f9f9f9;
+            color: var(--accent-color);
+        }
+
+        /* AFFICHAGE AU SURVOL */
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Petit triangle indicatif */
+        .dropbtn::after {
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
 
         /* --- 4. HERO SECTION --- */
         .hero {
@@ -375,8 +421,15 @@
                 <ul>
                     <li><a href="#expos">Expositions</a></li>
                     <li><a href="#collections">Collections</a></li>
-                    <li><a href="#infos">Visite</a></li>
-                    <li><a href="#" class="btn-billet">Billetterie</a></li>
+                    <li class="dropdown">
+                    <a href="#infos" class="dropbtn">Visite ▾</a>
+                    <div class="dropdown-content">
+                        <a href="horaires.html">Horaires & Tarifs</a>
+                        <a href="plan.html">Plan, accès & transports</a>
+                        <a href="accessibilite.html">Accessibilité</a>
+                    </div>
+                </li>
+                    <li><a href="billetterie.html" class="btn-billet">Billetterie</a></li>
                 </ul>
             </nav>
         </div>
@@ -386,7 +439,7 @@
         <div class="hero-content">
             <h1>L'ART INTEMPOREL</h1>
             <p>Plongez au cœur de l'histoire et de la beauté. Une collection unique à travers les siècles.</p>
-            <a href="#expos" class="btn-billet" style="border-color: #fff; color: #fff;">Découvrir</a>
+            <a href="billetterie.html" class="btn-billet" style="border-color: #fff; color: #fff;">Découvrir</a>
         </div>
     </section>
 
@@ -443,7 +496,7 @@
                     <p>Rue de Rivoli, 75001 Paris.<br>Métro : Palais Royal - Musée du Louvre.</p>
                 </div>
 
-                <a href="#" class="btn-billet" style="display:inline-block; margin-top:20px;">Réserver un créneau</a>
+                <a href="billetterie.html" class="btn-billet" style="display:inline-block; margin-top:20px;">Réserver un créneau</a>
             </div>
             <div class="infos-image">
                 <img src="https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=1974&auto=format&fit=crop" 
