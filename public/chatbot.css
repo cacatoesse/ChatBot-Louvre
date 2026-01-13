@@ -139,10 +139,107 @@
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* NOUVEAU : Mode "Étendu" (Max 50% width/70% height) */
+.chat-window.expanded {
+    width: 50vw; /* 50% de la largeur du viewport */
+    height: 70vh;
+    max-width: 800px; /* Sécurité pour écrans géants */
+}
+
 .chat-window.chat-open {
     opacity: 1;
     visibility: visible;
     transform: scale(1) translateY(0);
+}
+
+/* HEADER & CONTROLS */
+.chat-header { 
+    background: var(--accent-color); 
+    color: var(--white); 
+    padding: 15px 20px; /* Légèrement ajusté */
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+/* Alignement des contrôles dans le header */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espace entre le bouton agrandir et la croix */
+}
+
+/* Style commun pour les boutons d'icônes du header */
+.expand-btn, .close-chat-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.3rem; /* Taille de la croix et des flèches */
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.expand-btn:hover, .close-chat-btn:hover {
+    opacity: 1;
+}
+
+/* MESSAGES */
+.chat-messages { flex: 1; padding: 20px; background: #fcfcfc; overflow-y: auto; font-size: 0.9rem; }
+
+/* Conteneur de message pour gérer le temps en dessous */
+.message { 
+    margin-bottom: 15px; 
+    max-width: 80%; 
+    display: flex;
+    flex-direction: column;
+}
+.message.user { margin-left: auto; align-items: flex-end; }
+.message.bot { margin-right: auto; align-items: flex-start; }
+
+/* Le contenu visuel (bulle) */
+.msg-content {
+    padding: 12px 16px;
+    border-radius: 12px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+.message.bot .msg-content { background: #f0f0f0; color: var(--text-color); border-bottom-left-radius: 2px; }
+.message.user .msg-content { background: var(--accent-color); color: var(--white); border-bottom-right-radius: 2px; }
+
+/* NOUVEAU : Temps d'exécution discret */
+.exec-time {
+    font-size: 0.7rem;
+    color: #999;
+    font-style: italic;
+    margin-top: 4px;
+    margin-left: 5px;
+}
+
+/* NOUVEAU : Animation de chargement (Typing Indicator) */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+}
+.typing-indicator span {
+    display: block;
+    width: 6px;
+    height: 6px;
+    background-color: #888;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out both;
+}
+.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.6; }
+    40% { transform: scale(1); opacity: 1; }
 }
 
 /* RESTE DU STYLE (Header, Messages, Input) */
