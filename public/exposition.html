@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Expositions - Louvre</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/chatbot.css">
+    <link rel="stylesheet" href="/public/general.css">
+    <style>
+        body { 
+        font-family: 'Lato', sans-serif; 
+        background: #f9f9f9; 
+        color: #1a1a1a; 
+        margin: 0; /* REMPLACER padding: 50px par margin: 0 pour coller aux bords */
+        line-height: 1.8; 
+        }
+        .container { 
+        max-width: 1000%;
+        margin: 100px auto 20px auto; /* Marge en haut pour ne pas être sous le header fixe */
+        padding: 0 60px; /* Aligner le titre "Expositions" avec le texte de l'image */
+        }
+        h1 { font-family: 'Playfair Display', serif; border-bottom: 2px solid #9e8b6b; padding-bottom: 10px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #9e8b6b; text-decoration: none; }
+        .price-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .price-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .price-table td:last-child { text-align: right; font-weight: bold; }
+            header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(249, 249, 249, 0.95);
+            padding: 20px 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        /* Pour aligner le logo à gauche et le menu à droite */
+        .nav-container {
+            max-width: 1200px; /* Ajustez selon votre variable --container-width */
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        /* Pour que la liste de navigation ne fasse pas de points noirs */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        /* Style du bouton billetterie s'il est présent */
+        .btn-billet {
+            border: 1px solid #1a1a1a;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #1a1a1a;
+        }
+        .logo { font-family: var(--font-serif); font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
+    
+        /* Conteneur principal avec l'image de fond */
+        .hero-david {
+        position: relative;
+        height: 70vh; /* Un peu plus court pour mieux voir l'effet centré */
+        width: 90%;   /* Largeur réduite comme demandé */
+        margin: 0 auto; /* CENTRE l'élément horizontalement */
+        background-image: url('https://www.connaissancedesarts.com/wp-content/uploads/2020/07/cda20_focus_serment_paume_david_full.jpg'); 
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: flex-end;
+        padding: 40px;
+        color: white;
+        box-sizing: border-box;
+        border-radius: 8px; /* Optionnel : arrondit les coins de l'image */
+        overflow: hidden;   /* Assure que le voile noir ne dépasse pas des coins arrondis */
+        }
+
+        /* Couche sombre pour rendre le texte lisible */
+        .hero-david::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4); /* Voile noir transparent */
+            z-index: 1;
+        }
+
+        /* On remonte le contenu au-dessus du voile noir */
+        /* Le conteneur du texte doit prendre toute la hauteur pour placer le badge en haut */
+        .hero-overlay {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%; /* Important pour que le badge puisse se mettre en haut */
+            display: flex;
+            flex-direction: column;
+            justify-content:空间-between; /* Pousse le badge en haut et le texte en bas */
+        }
+
+        .badge {
+            align-self: flex-start; /* Aligne à gauche */
+            background: white;
+            color: black;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            /* Plus besoin de top: -450px, on utilise les marges naturelles */
+        }
+
+        /* Typographie du titre */
+        .hero-david h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem; /* Réduit de 4rem à 3rem */
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 10px;
+        margin-top: auto; /* Pousse le texte vers le bas */
+        }
+
+        .hero-date {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        /* Grille principale */
+        .expo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
+            gap: 30px; /* Espace entre les cartes */
+            max-width: 90%; /* Même largeur que votre section David */
+            margin: 50px auto; /* Centrage */
+        }
+
+        /* Style de la carte */
+        .expo-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Conteneur d'image pour positionner le badge */
+        .expo-image-container {
+            position: relative;
+            height: 400px; /* Hauteur fixe pour l'image */
+            overflow: hidden;
+            border-radius: 8px; /* Coins arrondis comme sur l'image */
+        }
+
+        .expo-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* L'image remplit le cadre sans se déformer */
+        }
+
+        /* Badge spécifique aux cartes */
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: white;
+            color: black;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Textes sous l'image */
+        .expo-info h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            border-bottom: none; /* On enlève la bordure dorée ici */
+        }
+
+        .expo-info h3 {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .expo-info p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html" style="text-decoration: none; color: inherit;">Louvre</a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="billetterie.html" class="btn-billet">Billetterie</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Expositions</h1>
+    </div>
+
+    <section class="hero-david">
+        <div class="hero-overlay">
+            <span class="badge">En cours</span>
+            <div class="hero-text">
+                <h1>Jacques-Louis David</h1>
+                <p class="hero-date">15 octobre 2025 – 26 janvier 2026</p>
+            </div>
+        </div>
+    </section>
+
+        <section class="expo-grid">
+    <article class="expo-card">
+        <div class="expo-image-container">
+            <img src="https://api-www.louvre.fr/sites/default/files/youtube/youtube-fqPRfRhMckU.jpg" alt="Dessins des Carrache">
+            <span class="card-badge">En cours</span>
+        </div>
+        <div class="expo-info">
+            <h2>Dessins des Carrache</h2>
+            <h3>La fabrique de la galerie Farnèse</h3>
+            <p>5 novembre 2025 – 2 février 2026</p>
+        </div>
+    </article>
+
+    <article class="expo-card">
+        <div class="expo-image-container">
+            <img src="https://imgprivate2.artprice.com/imgs/news/68541/1024" alt="Michel-Ange / Rodin">
+            <span class="card-badge">À venir</span>
+        </div>
+        <div class="expo-info">
+            <h2>Michel-Ange / Rodin</h2>
+            <h3>Corps vivants</h3>
+            <p>15 avril – 27 juillet 2026</p>
+        </div>
+    </article>
+
+    <article class="expo-card">
+        <div class="expo-image-container">
+            <img src="https://www.repro-tableaux.com/kunst/martin_schongauer/Die-Heilige-Familie-Martin-Schongauer.jpg" alt="Martin Schongauer">
+            <span class="card-badge">À venir</span>
+        </div>
+        <div class="expo-info">
+            <h2>Martin Schongauer</h2>
+            <h3>Le bel immortel</h3>
+            <p>8 avril – 20 juillet 2026</p>
+        </div>
+    </article>
+</section>
+
+
+    <div id="chatbot"></div>
+
+    <script>
+    fetch("/public/chatbot.html")
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById("chatbot").innerHTML = html;
+        });
+    </script>
+
+    <script src="/public/chatbot.js" defer></script>
+
+</body>
+</html>

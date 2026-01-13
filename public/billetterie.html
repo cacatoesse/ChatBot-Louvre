@@ -19,9 +19,53 @@
             padding: 15px 30px; text-decoration: none; margin-top: 20px; 
         }
         .back-link { display: block; margin-top: 30px; color: #9e8b6b; text-decoration: none; }
+                header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(249, 249, 249, 0.95);
+            padding: 20px 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        /* Pour aligner le logo à gauche et le menu à droite */
+        .nav-container {
+            max-width: 1200px; /* Ajustez selon votre variable --container-width */
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        /* Pour que la liste de navigation ne fasse pas de points noirs */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        /* Style du bouton billetterie s'il est présent */
+        .btn-billet {
+            border: 1px solid #1a1a1a;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #1a1a1a;
+        }
+        .logo { font-family: var(--font-serif); font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
+    </style>
     </style>
 </head>
 <body>
+        <header>
+    <div class="nav-container">
+        <div class="logo">
+            <a href="index.html" style="text-decoration: none; color: inherit;">Louvre</a>
+        </div>
+    </div>
+</header>
     <h1>Billetterie Officielle</h1>
     <div class="ticket-card">
         <h3>Billet Plein Tarif</h3>
