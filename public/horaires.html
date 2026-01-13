@@ -38,15 +38,24 @@
 
     <div id="chatbot"></div>
 
-    <script>
-    fetch("/public/chatbot.html")
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById("chatbot").innerHTML = html;
-        });
-    </script>
+    <script src="/public/chatbot.js"></script>
 
-    <script src="/public/chatbot.js" defer></script>
+    <script>
+        fetch("/public/chatbot.html")
+            .then(response => response.text())
+            .then(html => {
+                // Injection du HTML
+                document.getElementById("chatbot").innerHTML = html;
+                
+                // Initialisation des événements (Entrée/Clic) maintenant que le HTML existe
+                if (typeof initChatbot === "function") {
+                    initChatbot();
+                } else {
+                    console.error("La fonction initChatbot n'est pas chargée.");
+                }
+            })
+            .catch(err => console.error("Erreur chargement chatbot:", err));
+    </script>
 
 </body>
 </html>
