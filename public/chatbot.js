@@ -102,14 +102,14 @@ function addMessage(text, sender, duration = null, save = true) {
     const msgContainer = document.createElement("div");
     msgContainer.className = "message " + sender;
 
-    let htmlContent = `<div class="msg-content"><p>${text}</p></div>`;
+    let htmlContent = `<div class="msg-content">${text}</div>`; // 🔥 plus de <p>
 
     if (duration !== null) {
         const seconds = (duration / 1000).toFixed(2);
         htmlContent += `<span class="exec-time">Généré en ${seconds}s</span>`;
     }
 
-    msgContainer.innerHTML = htmlContent;
+    msgContainer.innerHTML = htmlContent;   // 🔥 HTML réel injecté ici
     chatMessagesBox.appendChild(msgContainer);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
 

@@ -12,6 +12,19 @@ PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 
 router = APIRouter()
 
+SITE_LINKS = {
+    "billet": ("Billetterie", "/public/billetterie.html"),
+    "billeterie": ("Billetterie", "/public/billetterie.html"),
+    "ticket": ("Billetterie", "/public/billetterie.html"),
+    "plan": ("Plan du musée", "/public/plan.html"),
+    "carte": ("Plan du musée", "/public/plan.html"),
+    "accessibilité": ("Accessibilité", "/public/accessibilite.html"),
+    "handicap": ("Accessibilité", "/public/accessibilite.html"),
+    "horaire": ("Horaires", "/public/horaires.html"),
+    "ouverture": ("Horaires", "/public/horaires.html"),
+}
+
+
 # Modèle de données attendu (JSON venant du JS)
 class ChatRequest(BaseModel):
     message: str
@@ -28,7 +41,27 @@ async def read_root():
 
 @router.post("/api/chat")
 def chat(request: ChatRequest):
+    user_message = request.message.lower()
+
+    # 1️⃣ Réponse du LLM en priorité
     response = ask_chatbot(request.message, request.history)
+
+    # 2️⃣ Horaires dynamiques MCP (enrichit la réponse)
+    if "horaire" in user_message or "heure" in user_message:
+        horaires = get_horaires_louvre()
+        if "data" in horaires:
+            horaires_txt = "<br>".join([f"{h['jours']} : {h['plage']}" for h in horaires["data"]])
+            response += f"<br><br>⏰ <strong>Horaires actuels :</strong><br>{horaires_txt}"
+
+    # 3️⃣ Ajout du lien utile à la fin du message
+    for keyword, (label, url) in SITE_LINKS.items():
+        if keyword in user_message:
+            response += (
+                "<br><br>🔗 <strong>Ressource utile :</strong><br>"
+                f"<a href='{url}' class='chat-link'>{label}</a>"
+            )
+            break
+
     return {"response": response}
 
 @router.get("/health")
