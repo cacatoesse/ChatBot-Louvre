@@ -68,19 +68,12 @@ def chat(request: ChatRequest):
     # 1️⃣ Réponse du LLM en priorité
     response = ask_chatbot(request.message, request.history)
 
-    # 2️⃣ Horaires dynamiques MCP (enrichit la réponse)
-    if "horaire" in user_message or "heure" in user_message:
-        horaires = get_horaires_louvre()
-        if "data" in horaires:
-            horaires_txt = "<br>".join([f"{h['jours']} : {h['plage']}" for h in horaires["data"]])
-            response += f"<br><br>⏰ <strong>Horaires actuels :</strong><br>{horaires_txt}"
-
-    # 3️⃣ Ajout du lien utile à la fin du message
-    for keyword, (label, url) in SITE_LINKS.items():
-        if keyword in user_message:
+    # 2️⃣ Ajout du lien utile à la fin du message
+    for key, data in SITE_LINKS.items():
+        if any(k in user_message for k in data["keywords"]):
             response += (
                 "<br><br>🔗 <strong>Ressource utile :</strong><br>"
-                f"<a href='{url}' class='chat-link'>{label}</a>"
+                f"<a href='{data['url']}' class='chat-link'>{data['label']}</a>"
             )
             break
 

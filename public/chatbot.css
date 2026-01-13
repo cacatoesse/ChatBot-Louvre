@@ -13,10 +13,10 @@
 
 /* --- LE BOUTON FLOTTANT (AVEC WAVES) --- */
 .chat-toggle-btn {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     background: var(--white);
-    border-radius: 50%;
+    border-radius: 60%;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     border: none;
     cursor: pointer;
@@ -80,7 +80,7 @@
     position: absolute; /* Superposition */
     opacity: 1;
     transform: rotate(0deg);
-    padding-bottom: 6px;
+    padding-bottom: 8px;
 }
 
 /* LA CROIX DE FERMETURE (SPAN) */
@@ -236,6 +236,18 @@
 }
 .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
 .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+/* Style des liens dans les bulles de chat */
+.message .msg-content a {
+    color: inherit;       /* Garde la couleur du texte (blanc ou noir) */
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+/* On force une couleur visible pour le lien dans la bulle grise (bot) */
+.message.bot .msg-content a {
+    color: var(--accent-color); /* Couleur Or */
+}
 
 @keyframes typing {
     0%, 80%, 100% { transform: scale(0); opacity: 0.6; }
