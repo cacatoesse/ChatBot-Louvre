@@ -18,7 +18,7 @@ def get_horaires_louvre():
             "error": "Page non trouvée ou inaccessible"
         }
 
-    soup = BeautifulSoup(r.text, "lxml")
+    soup = BeautifulSoup(r.text, "html.parser")
 
     # On cible la liste qui contient les horaires
     ul = soup.select_one("ul.Table_Horaires_list")
