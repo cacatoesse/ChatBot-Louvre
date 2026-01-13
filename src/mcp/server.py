@@ -3,7 +3,8 @@ from fastapi import APIRouter
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional # Ajout de typage explicite
-
+from mcp.tools.ratp_itinerary import get_itinerary
+import re
 from chatbot.core import ask_chatbot
 from mcp.tools.louvre_horaires import get_horaires_louvre
 
@@ -41,6 +42,22 @@ async def read_root():
 
 @router.post("/api/chat")
 def chat(request: ChatRequest):
+    msg = request.message.lower()
+
+    # 🧭 DÉTECTION TRAJET RATP
+    match = re.search(r"(aller de|trajet de|comment aller de)\s(.+?)\s(à|vers)\s(.+)", msg)
+
+    if match:
+        start = match.group(2)
+        end = match.group(4)
+
+        itin = get_itinerary(start, end)
+
+        if "steps" in itin:
+            text = f"🚇 Itinéraire le plus rapide<br>⏱ {itin['duration']} min<br><br>"
+            text += "<br>".join(itin["steps"])
+            return {"response": text}
+    
     user_message = request.message.lower()
 
     # 1️⃣ Réponse du LLM en priorité
