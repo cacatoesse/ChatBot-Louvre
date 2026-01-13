@@ -102,14 +102,40 @@ function addMessage(text, sender, duration = null, save = true) {
     const msgContainer = document.createElement("div");
     msgContainer.className = "message " + sender;
 
-    let htmlContent = `<div class="msg-content">${text}</div>`; // 🔥 plus de <p>
+    let formattedText = text;
+
+    // --- MISE EN FORME (ORDRE IMPORTANT) ---
+
+    // 1. Gestion des liens <https://...> (Format technique LLM)
+    // Le navigateur cache souvent ce qui est entre < > car il croit que c'est une balise.
+    formattedText = formattedText.replace(/<(https?:\/\/[^>]+)>/g, '<a href="$1" target="_blank">$1</a>');
+
+    // 2. Gestion des liens Markdown [Texte](URL)
+    formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+    // 3. Gestion des liens bruts (ex: "Allez sur https://louvre.fr")
+    // Le (?<!...) empêche de casser les liens déjà créés aux étapes 1 et 2 (évite le double lien dans le href)
+    formattedText = formattedText.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
+
+    // 4. Gras (**texte**)
+    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // 5. Italique (*texte*)
+    formattedText = formattedText.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+    // 6. Sauts de ligne
+    formattedText = formattedText.replace(/\n/g, "<br>");
+
+    // ---------------------------------------
+
+    let htmlContent = `<div class="msg-content">${formattedText}</div>`;
 
     if (duration !== null) {
         const seconds = (duration / 1000).toFixed(2);
         htmlContent += `<span class="exec-time">Généré en ${seconds}s</span>`;
     }
 
-    msgContainer.innerHTML = htmlContent;   // 🔥 HTML réel injecté ici
+    msgContainer.innerHTML = htmlContent;
     chatMessagesBox.appendChild(msgContainer);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
 
