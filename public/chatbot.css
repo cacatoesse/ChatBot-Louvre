@@ -248,7 +248,7 @@
         .close-chat-btn { display: none; } /* On cache la croix du header car on l'a sur le bouton maintenant */
         
         .chat-messages { flex: 1; padding: 20px; background: #fcfcfc; overflow-y: auto; font-size: 1rem; }
-        .message { margin-bottom: 15px; max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; }
+        .message { margin-bottom: 15px; max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; width: fit-content; }
         .message.bot { background: #f0f0f0; color: var(--text-color); border-bottom-left-radius: 2px; }
         .message.user { background: var(--accent-color); color: var(--white); margin-left: auto; border-bottom-right-radius: 2px; }
         
