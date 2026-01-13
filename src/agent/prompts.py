@@ -14,3 +14,5 @@ Ta mission est :
  
 Réponds selon la langue du message de l'utilisateur, avec un ton accueillant et professionnel.
 """
+# Prompt pour demander des informations spécifiques sur une œuvre d'art
+# bjlezdhfuskjnfriyisdnfgfsvosrnlgkdf
