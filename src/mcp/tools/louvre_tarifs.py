@@ -41,7 +41,7 @@ def get_tarifs_louvre():
             "error": "Page non trouvée ou inaccessible",
         }
 
-    soup = BeautifulSoup(r.text, "lxml")
+    soup = BeautifulSoup(r.text, "html.parser")
 
     # 1) On cherche parmi TOUTES les tables
     tables = soup.find_all("table")
@@ -50,7 +50,10 @@ def get_tarifs_louvre():
     for table in tables:
         caption = table.find("caption")
         cap_text = caption.get_text(" ", strip=True) if caption else ""
-        if caption and ("tarifs" in normalize(cap_text) and "entree" in normalize(cap_text)):
+        norm_cap = normalize(cap_text)
+
+        # Recherche plus souple : mot-clé dans le titre OU présence du symbole €
+        if "tarif" in norm_cap or "prix" in norm_cap or "€" in table.get_text():
             candidates.append(table)
 
     if not candidates:
@@ -63,7 +66,7 @@ def get_tarifs_louvre():
         return {
             "source": "louvre_tarifs",
             "status_code": r.status_code,
-            "error": "Aucune table avec caption 'Tarifs d'entrée' trouvée",
+            "error": "Aucun tableau de tarifs trouvé (recherche par caption ou symbole €)",
             "captions_found": captions,
         }
 

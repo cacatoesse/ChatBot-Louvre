@@ -2,9 +2,24 @@ from llm.ollama_client import ask_llm
 from agent.guardrails import is_insulting
 from agent.prompts import SYSTEM_PROMPT
 from mcp.tools.louvre_horaires import get_horaires_louvre
+from mcp.tools.louvre_tarifs import get_tarifs_louvre
 
 # CONFIGURATION : Nombre de messages max à garder en mémoire (glissant)
 MAX_HISTORY_LENGTH = 5
+
+# Configuration modulaire des outils
+TOOLS_MAPPING = [
+    {
+        "name": "Horaires",
+        "keywords": ["horaire", "ouverture", "fermeture", "ouvert", "fermé"],
+        "func": get_horaires_louvre
+    },
+    {
+        "name": "Tarifs",
+        "keywords": ["tarif", "prix", "coûte", "billet", "ticket", "gratuit", "payer"],
+        "func": get_tarifs_louvre
+    }
+]
 
 def ask_chatbot(user_message: str, history: list[dict]) -> str:
     # 1. Vérifie si le message est insultant
@@ -13,13 +28,16 @@ def ask_chatbot(user_message: str, history: list[dict]) -> str:
 
     # 2. Détection d'intention (Tools)
     additional_context = ""
-    keywords_horaires = ["horaire", "ouverture", "fermeture", "ouvert", "fermé"]
-    
-    if any(k in user_message.lower() for k in keywords_horaires):
-        print("🤖 Tool activé : Récupération des horaires...")
-        tool_result = get_horaires_louvre()
-        if "data" in tool_result:
-            additional_context = f"\n\n[INFO LIVE] : {tool_result['data']}."
+
+    for tool in TOOLS_MAPPING:
+        if any(keyword in user_message.lower() for keyword in tool["keywords"]):
+            print(f"🤖 Tool activé : Récupération {tool['name']}...")
+            try:
+                result = tool["func"]()
+                if "data" in result:
+                    additional_context += f"\n\n[INFO LIVE {tool['name'].upper()}] : {result['data']}."
+            except Exception as e:
+                print(f"⚠️ Erreur tool {tool['name']}: {e}")
 
     # 3. Gestion de l'historique (Sliding Window)
     # On ne garde que les N derniers éléments de la liste fournie par le frontend
@@ -36,7 +54,6 @@ def ask_chatbot(user_message: str, history: list[dict]) -> str:
 
     # B. L'historique récent (User + Assistant mélangés)
     for msg in recent_history:
-        print("Message : ",msg)
         # On vérifie que le message a bien un contenu pour éviter les erreurs
         if msg.get("content"):
             full_conversation.append({

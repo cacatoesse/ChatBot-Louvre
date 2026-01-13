@@ -31,11 +31,6 @@ class ChatRequest(BaseModel):
     message: str
     history: List[Dict[str, str]] = []
 
-def call_tool(tool_name: str):
-    if tool_name == "get_horaires_louvre":
-        return get_horaires_louvre()
-    return {"error": f"Tool inconnu: {tool_name}"}
-
 @router.get("/")
 async def read_root():
     return FileResponse(os.path.join(PUBLIC_DIR, "index.html"))
@@ -84,7 +79,3 @@ def chat(request: ChatRequest):
 @router.get("/health")
 def health():
     return {"status": "ok"}
-
-@router.get("/api/horaires")
-def horaires():
-    return call_tool("get_horaires_louvre")
