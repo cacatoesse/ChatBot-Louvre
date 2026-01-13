@@ -175,11 +175,19 @@ async function sendMessage() {
 
     const startTime = performance.now();
 
+    // Préparation de l'historique pour le backend
+    const storedHistory = JSON.parse(sessionStorage.getItem("louvre_chat_history")) || [];
+    // On retire le dernier élément (le message actuel) pour éviter les doublons
+    const historyPayload = storedHistory.slice(0, -1).map(msg => ({
+        role: msg.sender === "bot" ? "assistant" : "user",
+        content: msg.text
+    }));
+
     try {
         const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: text })
+            body: JSON.stringify({ message: text, history: historyPayload })
         });
 
         const data = await response.json();
