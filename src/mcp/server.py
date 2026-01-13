@@ -14,17 +14,27 @@ PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 router = APIRouter()
 
 SITE_LINKS = {
-    "billet": ("Billetterie", "/public/billetterie.html"),
-    "billeterie": ("Billetterie", "/public/billetterie.html"),
-    "ticket": ("Billetterie", "/public/billetterie.html"),
-    "plan": ("Plan du musée", "/public/plan.html"),
-    "carte": ("Plan du musée", "/public/plan.html"),
-    "accessibilité": ("Accessibilité", "/public/accessibilite.html"),
-    "handicap": ("Accessibilité", "/public/accessibilite.html"),
-    "horaire": ("Horaires", "/public/horaires.html"),
-    "ouverture": ("Horaires", "/public/horaires.html"),
+    "billetterie": {
+        "keywords": ["billet", "billetterie", "ticket", "réservation", "acheter", "prix", "tarif"],
+        "label": "Billetterie",
+        "url": "/public/billetterie.html"
+    },
+    "plan": {
+        "keywords": ["plan", "carte", "map", "parcours", "itinéraire", "visite", "visiter", "guide", "exploration", "découverte"],
+        "label": "Plan du musée",
+        "url": "/public/plan.html"
+    },
+    "accessibilite": {
+        "keywords": ["accessibilité", "handicap", "accessible", "pmr", "personne à mobilité réduite", "fauteuil roulant", "ascenseur", "rampe", "toilettes", "services"],
+        "label": "Accessibilité",
+        "url": "/public/accessibilite.html"
+    },
+    "horaires": {
+        "keywords": ["horaire", "horaires", "ouverture", "fermeture", "heure", "temps", "planning", "jours", "semaine", "week-end", "vacances", "fermé"],
+        "label": "Horaires",
+        "url": "/public/horaires.html"
+    }
 }
-
 
 # Modèle de données attendu (JSON venant du JS)
 class ChatRequest(BaseModel):
