@@ -1,8 +1,8 @@
-// On déclare les variables globales
+// Variables globales
 let chatInput;
 let chatSendBtn;
 let chatMessagesBox;
-let chatExpandBtn; // Nouveau
+let chatExpandBtn;
 
 /**
  * Initialise le chatbot
@@ -20,8 +20,19 @@ function initChatbot() {
         return;
     }
 
-    // 1. Envoi Message
-    chatSendBtn.addEventListener("click", sendMessage);
+    // --- 1. CHARGEMENT DE L'HISTORIQUE DE SESSION ---
+    // On utilise sessionStorage au lieu de localStorage
+    loadChatHistory();
+
+    // --- 2. RESTAURATION DE L'ÉTAT (OUVERT/FERMÉ) ---
+    const isChatOpen = sessionStorage.getItem("louvre_chat_open") === "true";
+    if (isChatOpen) {
+        openChatInterface(); 
+    }
+
+    // --- 3. ÉVÉNEMENTS ---
+    chatSendBtn.addEventListener("click", () => sendMessage());
+    
     chatInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
@@ -29,27 +40,41 @@ function initChatbot() {
         }
     });
 
-    // 2. Gestion du bouton "Agrandir / Réduire"
     if (chatExpandBtn) {
         chatExpandBtn.addEventListener("click", toggleExpand);
     }
 
-    console.log("✅ Chatbot initialisé.");
+    console.log("✅ Chatbot initialisé (Session uniquement).");
 }
 
 /**
- * Toggle Ouverture/Fermeture du widget
+ * Ouvre ou ferme le chat
  */
 function toggleChat() {
     const chatWindow = document.getElementById('chatWindow');
     const chatBtn = document.querySelector('.chat-toggle-btn');
     
-    if (chatWindow) chatWindow.classList.toggle('chat-open');
-    if (chatBtn) chatBtn.classList.toggle('btn-active');
+    if (chatWindow && chatBtn) {
+        const isNowOpen = chatWindow.classList.toggle('chat-open');
+        chatBtn.classList.toggle('btn-active');
+        
+        // Sauvegarde TEMPORAIRE de l'état
+        sessionStorage.setItem("louvre_chat_open", isNowOpen);
+    }
 }
 
 /**
- * NOUVEAU : Toggle Agrandissement (50%)
+ * Fonction helper pour forcer l'ouverture
+ */
+function openChatInterface() {
+    const chatWindow = document.getElementById('chatWindow');
+    const chatBtn = document.querySelector('.chat-toggle-btn');
+    if (chatWindow) chatWindow.classList.add('chat-open');
+    if (chatBtn) chatBtn.classList.add('btn-active');
+}
+
+/**
+ * Agrandir / Réduire
  */
 function toggleExpand() {
     const chatWindow = document.getElementById('chatWindow');
@@ -58,43 +83,69 @@ function toggleExpand() {
     if (chatWindow) {
         chatWindow.classList.toggle('expanded');
         
-        // Change l'icône selon l'état
         if (chatWindow.classList.contains('expanded')) {
-            btn.innerHTML = "⤡"; // Icône réduire
+            btn.innerHTML = "⤡"; 
             btn.title = "Réduire";
         } else {
-            btn.innerHTML = "⤢"; // Icône agrandir
+            btn.innerHTML = "⤢"; 
             btn.title = "Agrandir";
         }
     }
 }
 
 /**
- * Ajoute un message dans l'interface
- * @param {string} text - Le contenu HTML ou texte
- * @param {string} sender - 'user' ou 'bot'
- * @param {number|null} duration - Temps en ms (optionnel, pour le bot)
+ * Ajoute un message visuellement ET le sauvegarde si demandé
  */
-function addMessage(text, sender, duration = null) {
+function addMessage(text, sender, duration = null, save = true) {
     if (!chatMessagesBox) return;
 
     const msgContainer = document.createElement("div");
     msgContainer.className = "message " + sender;
 
-    // Structure : Bulle de contenu + Temps optionnel
     let htmlContent = `<div class="msg-content"><p>${text}</p></div>`;
 
-    // Ajout du temps d'exécution en bas si présent
     if (duration !== null) {
-        // Conversion ms -> secondes pour affichage propre
         const seconds = (duration / 1000).toFixed(2);
         htmlContent += `<span class="exec-time">Généré en ${seconds}s</span>`;
     }
 
     msgContainer.innerHTML = htmlContent;
-    
     chatMessagesBox.appendChild(msgContainer);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+
+    if (save) {
+        saveMessageToHistory(text, sender, duration);
+    }
+}
+
+/**
+ * Sauvegarde un message unique dans le SESSION storage
+ */
+function saveMessageToHistory(text, sender, duration) {
+    // 1. Récupérer l'existant (Session)
+    let history = JSON.parse(sessionStorage.getItem("louvre_chat_history")) || [];
+    
+    // 2. Ajouter le nouveau
+    history.push({ text, sender, duration });
+    
+    // 3. Réécrire le tout
+    sessionStorage.setItem("louvre_chat_history", JSON.stringify(history));
+}
+
+/**
+ * Charge l'historique au démarrage
+ */
+function loadChatHistory() {
+    // Récupération depuis la session
+    const history = JSON.parse(sessionStorage.getItem("louvre_chat_history")) || [];
+    
+    if (history.length > 0) {
+        chatMessagesBox.innerHTML = ""; 
+    }
+
+    history.forEach(msg => {
+        addMessage(msg.text, msg.sender, msg.duration, false);
+    });
 }
 
 /**
@@ -104,16 +155,14 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
-    // 1. Message utilisateur
-    addMessage(text, "user");
+    addMessage(text, "user", null, true);
     chatInput.value = ""; 
 
-    // 2. Loader ÉLÉGANT (multilingue)
+    // Loader
     const loadingId = "loading-" + Date.now();
     const loadingDiv = document.createElement("div");
     loadingDiv.className = "message bot";
     loadingDiv.id = loadingId;
-    // Trois petits points animés via CSS
     loadingDiv.innerHTML = `
         <div class="msg-content">
             <div class="typing-indicator">
@@ -124,7 +173,6 @@ async function sendMessage() {
     chatMessagesBox.appendChild(loadingDiv);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
 
-    // Timer Start
     const startTime = performance.now();
 
     try {
@@ -135,26 +183,22 @@ async function sendMessage() {
         });
 
         const data = await response.json();
-
-        // Timer End
         const endTime = performance.now();
-        const executionTime = endTime - startTime; // en ms
+        const executionTime = endTime - startTime;
 
-        // Retrait loader
         const loader = document.getElementById(loadingId);
         if (loader) loader.remove();
 
-        // 3. Réponse Bot avec temps
         if (data.response) {
-            addMessage(data.response, "bot", executionTime);
+            addMessage(data.response, "bot", executionTime, true);
         } else {
-            addMessage("Désolé, je n'ai pas compris.", "bot", executionTime);
+            addMessage("Désolé, je n'ai pas compris.", "bot", executionTime, true);
         }
 
     } catch (err) {
         const loader = document.getElementById(loadingId);
         if (loader) loader.remove();
         console.error("Erreur API:", err);
-        addMessage("❌ Erreur de connexion.", "bot");
+        addMessage("❌ Erreur de connexion.", "bot", null, true);
     }
 }
