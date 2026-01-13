@@ -1,11 +1,11 @@
-// On déclare les variables pour qu'elles soient accessibles dans tout le fichier
+// On déclare les variables globales
 let chatInput;
 let chatSendBtn;
 let chatMessagesBox;
+let chatExpandBtn; // Nouveau
 
 /**
- * Initialise le chatbot : récupère les éléments du DOM et attache les événements.
- * Cette fonction doit être appelée UNE FOIS que le HTML du chatbot est inséré dans la page.
+ * Initialise le chatbot
  */
 function initChatbot() {
     console.log("Initialisation du chatbot...");
@@ -13,31 +13,32 @@ function initChatbot() {
     chatInput = document.querySelector(".chat-input-area input");
     chatSendBtn = document.querySelector(".send-btn");
     chatMessagesBox = document.querySelector(".chat-messages");
+    chatExpandBtn = document.getElementById("expandBtn");
 
-    // Vérification de sécurité
     if (!chatInput || !chatSendBtn || !chatMessagesBox) {
-        console.error("❌ Erreur : Impossible de trouver les éléments du chatbot (input, bouton ou zone de messages).");
+        console.error("❌ Erreur éléments chatbot manquants.");
         return;
     }
 
-    // 1. Événement Clic sur la flèche
-    chatSendBtn.addEventListener("click", () => {
-        sendMessage();
-    });
-
-    // 2. Événement Touche "Entrée" dans l'input
+    // 1. Envoi Message
+    chatSendBtn.addEventListener("click", sendMessage);
     chatInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
-            e.preventDefault(); // Empêche le saut de ligne si c'était un textarea
+            e.preventDefault();
             sendMessage();
         }
     });
 
-    console.log("✅ Chatbot initialisé avec succès.");
+    // 2. Gestion du bouton "Agrandir / Réduire"
+    if (chatExpandBtn) {
+        chatExpandBtn.addEventListener("click", toggleExpand);
+    }
+
+    console.log("✅ Chatbot initialisé.");
 }
 
 /**
- * Ouvre ou ferme la fenêtre de chat
+ * Toggle Ouverture/Fermeture du widget
  */
 function toggleChat() {
     const chatWindow = document.getElementById('chatWindow');
@@ -48,17 +49,51 @@ function toggleChat() {
 }
 
 /**
- * Ajoute un message dans l'interface
+ * NOUVEAU : Toggle Agrandissement (50%)
  */
-function addMessage(text, sender) {
+function toggleExpand() {
+    const chatWindow = document.getElementById('chatWindow');
+    const btn = document.getElementById('expandBtn');
+    
+    if (chatWindow) {
+        chatWindow.classList.toggle('expanded');
+        
+        // Change l'icône selon l'état
+        if (chatWindow.classList.contains('expanded')) {
+            btn.innerHTML = "⤡"; // Icône réduire
+            btn.title = "Réduire";
+        } else {
+            btn.innerHTML = "⤢"; // Icône agrandir
+            btn.title = "Agrandir";
+        }
+    }
+}
+
+/**
+ * Ajoute un message dans l'interface
+ * @param {string} text - Le contenu HTML ou texte
+ * @param {string} sender - 'user' ou 'bot'
+ * @param {number|null} duration - Temps en ms (optionnel, pour le bot)
+ */
+function addMessage(text, sender, duration = null) {
     if (!chatMessagesBox) return;
 
-    const msg = document.createElement("div");
-    msg.className = "message " + sender;
-    msg.innerHTML = `<p>${text}</p>`;
+    const msgContainer = document.createElement("div");
+    msgContainer.className = "message " + sender;
+
+    // Structure : Bulle de contenu + Temps optionnel
+    let htmlContent = `<div class="msg-content"><p>${text}</p></div>`;
+
+    // Ajout du temps d'exécution en bas si présent
+    if (duration !== null) {
+        // Conversion ms -> secondes pour affichage propre
+        const seconds = (duration / 1000).toFixed(2);
+        htmlContent += `<span class="exec-time">Généré en ${seconds}s</span>`;
+    }
+
+    msgContainer.innerHTML = htmlContent;
     
-    chatMessagesBox.appendChild(msg);
-    // Scroll automatique vers le bas pour voir le dernier message
+    chatMessagesBox.appendChild(msgContainer);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
 }
 
@@ -67,23 +102,32 @@ function addMessage(text, sender) {
  */
 async function sendMessage() {
     const text = chatInput.value.trim();
-    if (!text) return; // Ne rien faire si vide
+    if (!text) return;
 
-    // 1. Affiche le message utilisateur immédiatement
+    // 1. Message utilisateur
     addMessage(text, "user");
-    chatInput.value = ""; // Vide le champ
+    chatInput.value = ""; 
 
-    // Petit effet de chargement (optionnel)
+    // 2. Loader ÉLÉGANT (multilingue)
     const loadingId = "loading-" + Date.now();
     const loadingDiv = document.createElement("div");
     loadingDiv.className = "message bot";
     loadingDiv.id = loadingId;
-    loadingDiv.innerHTML = "<p><em>Écrit...</em></p>";
+    // Trois petits points animés via CSS
+    loadingDiv.innerHTML = `
+        <div class="msg-content">
+            <div class="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>`;
+    
     chatMessagesBox.appendChild(loadingDiv);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
 
+    // Timer Start
+    const startTime = performance.now();
+
     try {
-        // 2. Envoi au serveur Python (FastAPI)
         const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -92,21 +136,25 @@ async function sendMessage() {
 
         const data = await response.json();
 
-        // On retire le message de chargement
+        // Timer End
+        const endTime = performance.now();
+        const executionTime = endTime - startTime; // en ms
+
+        // Retrait loader
         const loader = document.getElementById(loadingId);
         if (loader) loader.remove();
 
-        // 3. Affiche la réponse
+        // 3. Réponse Bot avec temps
         if (data.response) {
-            addMessage(data.response, "bot");
+            addMessage(data.response, "bot", executionTime);
         } else {
-            addMessage("Désolé, je n'ai pas compris.", "bot");
+            addMessage("Désolé, je n'ai pas compris.", "bot", executionTime);
         }
 
     } catch (err) {
         const loader = document.getElementById(loadingId);
         if (loader) loader.remove();
         console.error("Erreur API:", err);
-        addMessage("❌ Erreur de connexion au musée.", "bot");
+        addMessage("❌ Erreur de connexion.", "bot");
     }
 }
