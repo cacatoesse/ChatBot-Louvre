@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Accessibilité - Louvre</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/chatbot.css">
+    <link rel="stylesheet" href="/public/general.css">
+
     <style>
         body { font-family: 'Lato', sans-serif; background: #f9f9f9; color: #1a1a1a; padding: 50px; line-height: 1.8; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -67,12 +70,61 @@
             margin: 30px auto;   /* Espacement au-dessus et en-dessous de la barre */
             width: 100%;         /* Prend toute la largeur du conteneur */
         }
+                header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(249, 249, 249, 0.95);
+            padding: 20px 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        /* Pour aligner le logo à gauche et le menu à droite */
+        .nav-container {
+            max-width: 1200px; /* Ajustez selon votre variable --container-width */
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        /* Pour que la liste de navigation ne fasse pas de points noirs */
+        .nav-container nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        /* Style du bouton billetterie s'il est présent */
+        .btn-billet {
+            border: 1px solid #1a1a1a;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #1a1a1a;
+        }
+        .logo { font-family: var(--font-serif); font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
+    </style>
     </style>
 </head>
 <body>
+        <header>
+    <div class="nav-container">
+        <div class="logo">
+            <a href="index.html" style="text-decoration: none; color: inherit;">Louvre</a>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="billetterie.html" class="btn-billet">Billetterie</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
     <div class="container">
-    <a href="index.html" class="back-link">← Retour à l'accueil</a>
-    <h1>Accessibilité</h1>
+        <h1>Accessibilité</h1>
 
     <nav class="anchor-menu">
         <ul>
@@ -227,5 +279,27 @@
     <a href="accessibilite.html" class="back-link">↑ Retour en haut de page</a>    
     </section>
     </div>
+
+    <div id="chatbot"></div>
+
+    <script src="/public/chatbot.js"></script>
+
+    <script>
+        fetch("/public/chatbot.html")
+            .then(response => response.text())
+            .then(html => {
+                // Injection du HTML
+                document.getElementById("chatbot").innerHTML = html;
+                
+                // Initialisation des événements (Entrée/Clic) maintenant que le HTML existe
+                if (typeof initChatbot === "function") {
+                    initChatbot();
+                } else {
+                    console.error("La fonction initChatbot n'est pas chargée.");
+                }
+            })
+            .catch(err => console.error("Erreur chargement chatbot:", err));
+    </script>
+
 </body>
 </html>

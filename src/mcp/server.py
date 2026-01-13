@@ -1,18 +1,90 @@
+import os
+from fastapi import APIRouter
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from typing import List, Dict, Optional # Ajout de typage explicite
+from mcp.tools.ratp_itinerary import get_itinerary
+import re
+from chatbot.core import ask_chatbot
 from mcp.tools.louvre_horaires import get_horaires_louvre
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PUBLIC_DIR = os.path.join(BASE_DIR, "public")
+
+router = APIRouter()
+
+SITE_LINKS = {
+    "billet": ("Billetterie", "/public/billetterie.html"),
+    "billeterie": ("Billetterie", "/public/billetterie.html"),
+    "ticket": ("Billetterie", "/public/billetterie.html"),
+    "plan": ("Plan du musée", "/public/plan.html"),
+    "carte": ("Plan du musée", "/public/plan.html"),
+    "accessibilité": ("Accessibilité", "/public/accessibilite.html"),
+    "handicap": ("Accessibilité", "/public/accessibilite.html"),
+    "horaire": ("Horaires", "/public/horaires.html"),
+    "ouverture": ("Horaires", "/public/horaires.html"),
+}
+
+
+# Modèle de données attendu (JSON venant du JS)
+class ChatRequest(BaseModel):
+    message: str
+    history: List[Dict[str, str]] = []
+
 def call_tool(tool_name: str):
-    """
-    Simule un serveur MCP :
-    - reçoit un nom de tool
-    - exécute le tool correspondant
-    - renvoie le résultat
-    """
     if tool_name == "get_horaires_louvre":
         return get_horaires_louvre()
-
     return {"error": f"Tool inconnu: {tool_name}"}
 
+@router.get("/")
+async def read_root():
+    return FileResponse(os.path.join(PUBLIC_DIR, "index.html"))
 
-if __name__ == "__main__":
-    # Test local
-    print(call_tool("get_horaires_louvre"))
+@router.post("/api/chat")
+def chat(request: ChatRequest):
+    msg = request.message.lower()
+
+    # 🧭 DÉTECTION TRAJET RATP
+    match = re.search(r"(aller de|trajet de|comment aller de)\s(.+?)\s(à|vers)\s(.+)", msg)
+
+    if match:
+        start = match.group(2)
+        end = match.group(4)
+
+        itin = get_itinerary(start, end)
+
+        if "steps" in itin:
+            text = f"🚇 Itinéraire le plus rapide<br>⏱ {itin['duration']} min<br><br>"
+            text += "<br>".join(itin["steps"])
+            return {"response": text}
+    
+    user_message = request.message.lower()
+
+    # 1️⃣ Réponse du LLM en priorité
+    response = ask_chatbot(request.message, request.history)
+
+    # 2️⃣ Horaires dynamiques MCP (enrichit la réponse)
+    if "horaire" in user_message or "heure" in user_message:
+        horaires = get_horaires_louvre()
+        if "data" in horaires:
+            horaires_txt = "<br>".join([f"{h['jours']} : {h['plage']}" for h in horaires["data"]])
+            response += f"<br><br>⏰ <strong>Horaires actuels :</strong><br>{horaires_txt}"
+
+    # 3️⃣ Ajout du lien utile à la fin du message
+    for keyword, (label, url) in SITE_LINKS.items():
+        if keyword in user_message:
+            response += (
+                "<br><br>🔗 <strong>Ressource utile :</strong><br>"
+                f"<a href='{url}' class='chat-link'>{label}</a>"
+            )
+            break
+
+    return {"response": response}
+
+@router.get("/health")
+def health():
+    return {"status": "ok"}
+
+@router.get("/api/horaires")
+def horaires():
+    return call_tool("get_horaires_louvre")

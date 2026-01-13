@@ -6,4 +6,11 @@ Copie du site web du Musée du Louvre avec un assistant virtuel (Chatbot).
 Installez toutes les dépendances nécessaires en une seule commande :
 
 ```bash
-python -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
+```
+
+## 🚀 Lancement
+
+```bash
+python3 src/main.py
+```

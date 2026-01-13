@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <title>Billetterie - Musée du Louvre</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/chatbot.css">
+    <link rel="stylesheet" href="/public/general.css">
     <style>
-        body { font-family: 'Lato', sans-serif; background: #f9f9f9; text-align: center; padding: 50px; }
+        body { 
+            font-family: 'Lato', sans-serif; 
+            background: #f9f9f9; 
+            text-align: center; /* Attention : ceci centre tout, y compris le chatbot si on ne le force pas */
+            padding: 50px; 
+        }
         h1 { font-family: 'Playfair Display', serif; color: #1a1a1a; }
         .ticket-card { 
             background: white; max-width: 400px; margin: 40px auto; 
@@ -17,47 +24,118 @@
             padding: 15px 30px; text-decoration: none; margin-top: 20px; 
         }
         .back-link { display: block; margin-top: 30px; color: #9e8b6b; text-decoration: none; }
+
+        /* FIX SPÉCIFIQUE : On force l'alignement à gauche pour le chatbot 
+           pour contrer le text-align:center du body */
+        #chatbot {
+            text-align: left;
+        }
+                header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(249, 249, 249, 0.95);
+            padding: 20px 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        /* Pour aligner le logo à gauche et le menu à droite */
+        .nav-container {
+            max-width: 1200px; /* Ajustez selon votre variable --container-width */
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        /* Pour que la liste de navigation ne fasse pas de points noirs */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        /* Style du bouton billetterie s'il est présent */
+        .btn-billet {
+            border: 1px solid #1a1a1a;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #1a1a1a;
+        }
+        .logo { font-family: var(--font-serif); font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
     </style>
 </head>
 <body>
+        <header>
+    <div class="nav-container">
+        <div class="logo">
+            <a href="index.html" style="text-decoration: none; color: inherit;">Louvre</a>
+        </div>
+    </div>
+</header>
     <h1>Billetterie Officielle</h1>
+    
     <div class="ticket-card">
         <h3>Billet Plein Tarif</h3>
         <p>Accès aux collections permanentes et expositions temporaires.</p>
         <p><strong>22,00 €</strong></p>
         <a href="#" class="btn-pay">Acheter maintenant</a>
     </div>
+
     <div class="ticket-card">
-        <h3>Billet -18 ans (toutes nationnalités)</h3>
-        <p>Entrée gratuite sur présentation d'un justificatif valide (voir informations).</p>
+        <h3>Billet -18 ans (toutes nationalités)</h3>
+        <p>Entrée gratuite sur présentation d'un justificatif valide.</p>
         <p><strong>0,00 €</strong></p>
         <a href="#" class="btn-pay">Acheter maintenant</a>
     </div>
+
     <div class="ticket-card">
-        <h3>Billet 18-25 ans (résidants dans l'UE)</h3>
-        <p>Pour les résidents et/ou citoyens de l'Espace économique européen (EEE), âgés de 18 à 25 ans.</p>
-        <p>Entrée gratuite sur présentation d'un justificatif valide (voir informations)</p>
+        <h3>Billet 18-25 ans (résidents UE)</h3>
+        <p>Pour les résidents de l'Espace économique européen.</p>
         <p><strong>0,00 €</strong></p>
         <a href="#" class="btn-pay">Acheter maintenant</a>
     </div>
+
     <div class="ticket-card">
         <h3>Billet Titulaires de la carte du Louvre</h3>
         <p>(Voir informations)</p>
         <p><strong>0,00 €</strong></p>
         <a href="#" class="btn-pay">Acheter maintenant</a>
     </div>
+
     <div class="ticket-card">
-        <h3>Billet Titulaires de cartes professionnelles</h3>
+        <h3>Billet Autres visiteurs (gratuité)</h3>
         <p>(Voir informations)</p>
         <p><strong>0,00 €</strong></p>
         <a href="#" class="btn-pay">Acheter maintenant</a>
     </div>
-     <div class="ticket-card">
-        <h3>Billet Autres visiteurs bénéficiant d'une éntrée gratuite</h3>
-        <p>(Voir informations)</p>
-        <p><strong>0,00 €</strong></p>
-        <a href="#" class="btn-pay">Acheter maintenant</a>
-    </div>
+
     <a href="index.html" class="back-link">← Retour au site</a>
+
+    <div id="chatbot"></div>
+
+    <script src="/public/chatbot.js"></script>
+    <script>
+        fetch("/public/chatbot.html")
+            .then(response => {
+                if (!response.ok) throw new Error("Erreur HTTP " + response.status);
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById("chatbot").innerHTML = html;
+                
+                // On vérifie que le script JS est bien chargé avant d'init
+                if (typeof initChatbot === "function") {
+                    initChatbot();
+                } else {
+                    console.error("Erreur : La fonction initChatbot n'est pas trouvée. Vérifiez le chemin de chatbot.js");
+                }
+            })
+            .catch(err => console.error("Erreur chargement chatbot :", err));
+    </script>
+
 </body>
 </html>
