@@ -11,7 +11,7 @@ MAX_HISTORY_LENGTH = 5
 TOOLS_MAPPING = [
     {
         "name": "Horaires",
-        "keywords": ["horaire", "ouverture", "fermeture", "ouvert", "fermé"],
+        "keywords": ["horaire", "ouverture", "fermeture", "ouvert", "fermé", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"],
         "func": get_horaires_louvre
     },
     {
