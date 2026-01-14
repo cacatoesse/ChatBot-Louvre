@@ -3,6 +3,11 @@ let chatInput;
 let chatSendBtn;
 let chatMessagesBox;
 let chatExpandBtn;
+let notificationBadge;
+let unreadCount = 0;
+let idleTimer;
+let catchphraseFreq = 1; //minute(s)
+let catchphrases = [];
 
 /**
  * Initialise le chatbot
@@ -20,9 +25,26 @@ function initChatbot() {
         return;
     }
 
+    // Création du badge de notification
+    const chatBtn = document.querySelector('.chat-toggle-btn');
+    if (chatBtn) {
+        notificationBadge = document.createElement("div");
+        notificationBadge.className = "notification-badge";
+        notificationBadge.innerText = "0";
+        chatBtn.appendChild(notificationBadge);
+    }
+
     // --- 1. CHARGEMENT DE L'HISTORIQUE DE SESSION ---
     // On utilise sessionStorage au lieu de localStorage
     loadChatHistory();
+
+    // --- 1b. CHARGEMENT DES PHRASES D'ACCROCHE ---
+    fetch('catchphrases.json')
+        .then(res => res.json())
+        .then(data => {
+            catchphrases = data;
+        })
+        .catch(err => console.error("Erreur chargement phrases:", err));
 
     // --- 2. RESTAURATION DE L'ÉTAT (OUVERT/FERMÉ) ---
     const isChatOpen = sessionStorage.getItem("louvre_chat_open") === "true";
@@ -34,6 +56,7 @@ function initChatbot() {
     chatSendBtn.addEventListener("click", () => sendMessage());
     
     chatInput.addEventListener("keydown", (e) => {
+        resetIdleTimer();
         if (e.key === "Enter") {
             e.preventDefault();
             sendMessage();
@@ -43,6 +66,8 @@ function initChatbot() {
     if (chatExpandBtn) {
         chatExpandBtn.addEventListener("click", toggleExpand);
     }
+
+    resetIdleTimer();
 
     console.log("✅ Chatbot initialisé (Session uniquement).");
 }
@@ -60,6 +85,14 @@ function toggleChat() {
         
         // Sauvegarde TEMPORAIRE de l'état
         sessionStorage.setItem("louvre_chat_open", isNowOpen);
+
+        // Si on ouvre, on reset les notifications
+        if (isNowOpen) {
+            unreadCount = 0;
+            updateBadge();
+        }
+
+        resetIdleTimer();
     }
 }
 
@@ -71,6 +104,10 @@ function openChatInterface() {
     const chatBtn = document.querySelector('.chat-toggle-btn');
     if (chatWindow) chatWindow.classList.add('chat-open');
     if (chatBtn) chatBtn.classList.add('btn-active');
+    
+    // Reset notifs
+    unreadCount = 0;
+    updateBadge();
 }
 
 /**
@@ -90,6 +127,20 @@ function toggleExpand() {
             btn.innerHTML = "⤢"; 
             btn.title = "Agrandir";
         }
+    }
+}
+
+/**
+ * Met à jour l'affichage du badge
+ */
+function updateBadge() {
+    if (!notificationBadge) return;
+    
+    notificationBadge.innerText = unreadCount;
+    if (unreadCount > 0) {
+        notificationBadge.classList.add("visible");
+    } else {
+        notificationBadge.classList.remove("visible");
     }
 }
 
@@ -178,6 +229,7 @@ function loadChatHistory() {
  * Envoie le message au backend
  */
 async function sendMessage() {
+    resetIdleTimer();
     const text = chatInput.value.trim();
     if (!text) return;
 
@@ -225,6 +277,13 @@ async function sendMessage() {
 
         if (data.response) {
             addMessage(data.response, "bot", executionTime, true);
+            
+            // Si le chat est fermé, on incrémente le compteur
+            const chatWindow = document.getElementById('chatWindow');
+            if (chatWindow && !chatWindow.classList.contains('chat-open')) {
+                unreadCount++;
+                updateBadge();
+            }
         } else {
             addMessage("Désolé, je n'ai pas compris.", "bot", executionTime, true);
         }
@@ -235,4 +294,31 @@ async function sendMessage() {
         console.error("Erreur API:", err);
         addMessage("❌ Erreur de connexion.", "bot", null, true);
     }
+}
+
+/**
+ * Réinitialise le timer d'inactivité (5 minutes)
+ */
+function resetIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(triggerIdleMessage, catchphraseFreq * 60 * 1000);
+}
+
+/**
+ * Envoie un message de relance automatique
+ */
+function triggerIdleMessage() {
+    let message = "Bonjour, comment puis-je vous aider ? Que voulez-vous voir au Louvre ?";
+    if (catchphrases.length > 0) {
+        message = catchphrases[Math.floor(Math.random() * catchphrases.length)];
+    }
+
+    addMessage(message, "bot", null, true);
+
+    const chatWindow = document.getElementById('chatWindow');
+    if (chatWindow && !chatWindow.classList.contains('chat-open')) {
+        unreadCount++;
+        updateBadge();
+    }
+    resetIdleTimer();
 }
