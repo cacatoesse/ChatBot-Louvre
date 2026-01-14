@@ -5,8 +5,9 @@
 
 // --- CONFIGURATION ---
 const CONFIG = {
-    IDLE_TIMEOUT: 120, // Temps d'inactivité en SECONDES avant relance
+    IDLE_TIMEOUT: 60,
     API_URL: "/api/chat",
+    CATCHPHRASES_FILE: "catchphrases.json",
     STORAGE_KEYS: {
         HISTORY: "louvre_chat_history",
         STATE: "louvre_chat_open",
@@ -17,13 +18,13 @@ const CONFIG = {
 
 // --- VARIABLES GLOBALES ---
 let elements = {};      // Stockera les éléments du DOM (input, bouton, etc.)
-let idleTimer;          // Variable pour le minuteur technique
+let idleTimer;          // Variable technique pour le compte à rebours
 let unreadCount = 0;    // Compteur de messages non lus
 let catchphrases = [];  // Phrases d'accroche chargées depuis le JSON
 
 /**
  * 1. INITIALISATION
- * Appelé une fois que le HTML du chatbot est injecté dans la page.
+ * Cette fonction est appelée une fois le HTML du chatbot injecté dans la page.
  */
 function initChatbot() {
     console.log("🚀 Démarrage du chatbot...");
@@ -38,23 +39,24 @@ function initChatbot() {
         toggleBtn: document.querySelector(".chat-toggle-btn")
     };
 
+    // Sécurité : Si le HTML est mal chargé, on arrête tout
     if (!elements.input || !elements.sendBtn || !elements.messagesBox) {
         console.error("❌ Erreur : Éléments du chatbot introuvables.");
         return;
     }
 
-    // Création du badge de notification (rond rouge)
+    // Création du badge de notification (petit rond rouge)
     createNotificationBadge();
 
-    // Chargement des données existantes (Session)
+    // Chargement des données existantes (Session utilisateur)
     loadChatHistory();
     restoreChatState();
     loadCatchphrases();
 
-    // Configuration des événements (Clics, Entrée)
+    // Installation des écouteurs d'événements (Clics, Clavier...)
     setupEventListeners();
 
-    // Gestion du Minuteur (Reprise intelligente au changement de page)
+    // Lancement du minuteur d'inactivité (avec reprise intelligente)
     restoreIdleTimer();
 
     console.log("✅ Chatbot prêt.");
@@ -64,19 +66,20 @@ function initChatbot() {
  * 2. GESTION DES ÉVÉNEMENTS
  */
 function setupEventListeners() {
-    // Envoi par clic
+    // Envoi par clic sur la flèche
     elements.sendBtn.addEventListener("click", () => sendMessage());
 
     // Envoi par touche Entrée
     elements.input.addEventListener("keydown", (e) => {
-        resetIdleTimer(); // L'écriture compte comme une activité
+        // L'écriture est une activité, on reset le timer
+        resetIdleTimer();
         if (e.key === "Enter") {
             e.preventDefault();
             sendMessage();
         }
     });
 
-    // Bouton Agrandir / Réduire
+    // Bouton Agrandir / Réduire (si présent)
     if (elements.expandBtn) {
         elements.expandBtn.addEventListener("click", toggleExpand);
     }
@@ -93,14 +96,15 @@ function toggleChat() {
     const isOpen = elements.chatWindow.classList.toggle('chat-open');
     elements.toggleBtn.classList.toggle('btn-active');
     
-    // Sauvegarde l'état pour les autres pages
+    // Sauvegarde l'état (Ouvert/Fermé) pour la navigation entre pages
     sessionStorage.setItem(CONFIG.STORAGE_KEYS.STATE, isOpen);
 
+    // Si on ouvre, on remet le compteur de notifs à 0
     if (isOpen) {
         resetBadge();
     }
     
-    // Une interaction utilisateur réinitialise le timer
+    // Une interaction utilisateur (clic) réinitialise le timer
     resetIdleTimer();
 }
 
@@ -133,7 +137,7 @@ function createNotificationBadge() {
     badge.innerText = "0";
     elements.toggleBtn.appendChild(badge);
 
-    // Restaure le nombre précédent
+    // Restaure le nombre précédent depuis la session
     unreadCount = parseInt(sessionStorage.getItem(CONFIG.STORAGE_KEYS.BADGE) || "0", 10);
     updateBadgeDisplay();
 }
@@ -167,7 +171,7 @@ function addMessage(text, sender, duration = null, save = true) {
         .replace(/<(https?:\/\/[^>]+)>/g, '<a href="$1" target="_blank">$1</a>')
         // Liens Markdown [Texte](URL)
         .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-        // Liens bruts (http...)
+        // Liens bruts (http...) sans casser les balises précédentes
         .replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>')
         // Gras (**texte**)
         .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -176,7 +180,7 @@ function addMessage(text, sender, duration = null, save = true) {
         // Sauts de ligne
         .replace(/\n/g, "<br>");
 
-    // Construction du HTML
+    // Construction du HTML final
     let htmlContent = `<div class="msg-content">${formattedText}</div>`;
 
     // Ajout du temps d'exécution (si fourni)
@@ -187,9 +191,10 @@ function addMessage(text, sender, duration = null, save = true) {
 
     msgContainer.innerHTML = htmlContent;
     elements.messagesBox.appendChild(msgContainer);
+    // Scroll automatique vers le bas
     elements.messagesBox.scrollTop = elements.messagesBox.scrollHeight;
 
-    // Sauvegarde en session
+    // Sauvegarde en session (sauf pour l'affichage de l'historique au chargement)
     if (save) {
         saveMessageToSession(text, sender, duration);
     }
@@ -199,25 +204,26 @@ function addMessage(text, sender, duration = null, save = true) {
  * 6. LOGIQUE DE COMMUNICATION (API)
  */
 async function sendMessage() {
-    resetIdleTimer(); // On reset le timer car l'utilisateur est actif
+    // 1. Reset timer car l'utilisateur est actif
+    resetIdleTimer();
     
     const text = elements.input.value.trim();
     if (!text) return;
 
-    // 1. Afficher le message utilisateur
+    // 2. Afficher le message utilisateur
     addMessage(text, "user", null, true);
     elements.input.value = ""; 
 
-    // 2. Afficher l'indicateur de chargement
+    // 3. Afficher l'indicateur de chargement
     const loadingId = showLoader();
 
     const startTime = performance.now();
 
     try {
-        // Préparation de l'historique pour le LLM (sans le message qu'on vient d'envoyer)
+        // Préparation de l'historique pour le LLM (Context window)
         const historyPayload = getHistoryForAPI();
 
-        // 3. Appel API
+        // 4. Appel API vers le serveur Python
         const response = await fetch(CONFIG.API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -227,9 +233,10 @@ async function sendMessage() {
         const data = await response.json();
         const executionTime = performance.now() - startTime;
 
+        // Retrait du loader
         removeLoader(loadingId);
 
-        // 4. Traitement de la réponse
+        // 5. Traitement de la réponse
         if (data.response) {
             addMessage(data.response, "bot", executionTime, true);
             incrementBadgeIfClosed();
@@ -248,13 +255,15 @@ async function sendMessage() {
  * 7. GESTION DU TIMER D'INACTIVITÉ
  * Relance le bot si l'utilisateur ne fait rien pendant X secondes.
  */
+
+// Réinitialise le timer (appelé à chaque action utilisateur)
 function resetIdleTimer() {
     if (idleTimer) clearTimeout(idleTimer);
 
-    // On stocke l'heure de la dernière action
+    // On stocke l'heure de la dernière action pour la continuité entre pages
     sessionStorage.setItem(CONFIG.STORAGE_KEYS.LAST_ACTION, Date.now());
 
-    // On lance le timer
+    // On lance le timer technique (converti en ms)
     idleTimer = setTimeout(triggerIdleMessage, CONFIG.IDLE_TIMEOUT * 1000);
 }
 
@@ -279,13 +288,30 @@ function restoreIdleTimer() {
 
 // Fonction déclenchée quand le temps est écoulé
 function triggerIdleMessage() {
-    // Choix d'une phrase aléatoire
+    // --- VÉRIFICATION ANTI-SPAM ---
+    // On vérifie l'historique pour ne pas parler tout seul indéfiniment
+    const history = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY)) || [];
+    const len = history.length;
+
+    // Si les 2 derniers messages viennent du bot, on s'arrête.
+    if (len >= 2) {
+        const lastMsg = history[len - 1];
+        const secondLastMsg = history[len - 2];
+
+        if (lastMsg.sender === "bot" && secondLastMsg.sender === "bot") {
+            // On relance quand même le timer (boucle silencieuse) pour vérifier plus tard
+            // si l'utilisateur a répondu, mais on n'envoie PAS de message maintenant.
+            resetIdleTimer();
+            return; 
+        }
+    }
+
+    // --- ENVOI DU MESSAGE ---
     let message = "Bonjour, puis-je vous aider ?";
     if (catchphrases.length > 0) {
         message = catchphrases[Math.floor(Math.random() * catchphrases.length)];
     }
 
-    // Envoi du message (Note: pas de vérification anti-doublon comme demandé)
     addMessage(message, "bot", null, true);
     incrementBadgeIfClosed();
 
@@ -299,8 +325,17 @@ function triggerIdleMessage() {
 
 function loadChatHistory() {
     const history = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY)) || [];
-    if (history.length > 0) elements.messagesBox.innerHTML = ""; 
-    history.forEach(msg => addMessage(msg.text, msg.sender, msg.duration, false));
+    
+    // On vide le contenu initial (message en dur dans le HTML)
+    elements.messagesBox.innerHTML = "";
+
+    if (history.length > 0) {
+        // On recharge les messages sans les re-sauvegarder (save=false)
+        history.forEach(msg => addMessage(msg.text, msg.sender, msg.duration, false));
+    } else {
+        // Premier message envoyé par le bot si l'historique est vide
+        addMessage("Bonjour. Je suis l'assistant virtuel du musée. Comment puis-je vous aider à préparer votre visite aujourd'hui ?", "bot", null, true);
+    }
 }
 
 function saveMessageToSession(text, sender, duration) {
@@ -315,10 +350,10 @@ function restoreChatState() {
 }
 
 function loadCatchphrases() {
-    fetch('catchphrases.json')
+    fetch(CONFIG.CATCHPHRASES_FILE)
         .then(res => res.json())
         .then(data => { catchphrases = data; })
-        .catch(() => console.warn("Fichier catchphrases.json non trouvé ou vide."));
+        .catch(() => console.warn("Fichier phrases d'accroche non trouvé, utilisation par défaut."));
 }
 
 function showLoader() {
@@ -337,9 +372,10 @@ function removeLoader(id) {
     if (loader) loader.remove();
 }
 
+// Prépare l'historique pour l'API (convertit 'bot' -> 'assistant')
 function getHistoryForAPI() {
     const stored = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY)) || [];
-    // On prend tout sauf le dernier message (qui est celui qu'on vient d'ajouter visuellement)
+    // On prend tout sauf le dernier message (qui est celui qu'on vient d'ajouter nous-même)
     return stored.slice(0, -1).map(msg => ({
         role: msg.sender === "bot" ? "assistant" : "user",
         content: msg.text
