@@ -191,6 +191,25 @@
             font-size: 0.9rem;
             color: #666;
         }
+        /* --- 7. FOOTER --- */
+        footer {
+            background: var(--text-color);
+            color: var(--white);
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .footer-links { margin-bottom: 30px; }
+        .footer-links a { color: #ccc; margin: 0 15px; font-size: 0.9rem; }
+        .copyright { font-size: 0.8rem; opacity: 0.6; }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .nav-container { flex-direction: column; gap: 20px; }
+            nav ul { gap: 20px; font-size: 0.8rem; }
+            .infos-container { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
@@ -260,6 +279,15 @@
     <a href="index.html" class="back-link">← Retour au site</a>
 </section>
 
+    <footer>
+        <div class="footer-links">
+            <a href="#">Mécénat</a>
+            <a href="#">Presse</a>
+            <a href="#">Contact</a>
+            <a href="#">Mentions Légales</a>
+        </div>
+        <p class="copyright">&copy; 2026 LOUVRE. Tous droits réservés.</p>
+    </footer>
     
 
     <div id="chatbot"></div>
