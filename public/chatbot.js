@@ -1,324 +1,354 @@
-// Variables globales
-let chatInput;
-let chatSendBtn;
-let chatMessagesBox;
-let chatExpandBtn;
-let notificationBadge;
-let unreadCount = 0;
-let idleTimer;
-let catchphraseFreq = 1; //minute(s)
-let catchphrases = [];
+/**
+ * CHATBOT DU MUSÉE DU LOUVRE
+ * Gère l'interface, l'historique de session, les appels API et la relance automatique.
+ */
+
+// --- CONFIGURATION ---
+const CONFIG = {
+    IDLE_TIMEOUT: 120, // Temps d'inactivité en SECONDES avant relance
+    API_URL: "/api/chat",
+    STORAGE_KEYS: {
+        HISTORY: "louvre_chat_history",
+        STATE: "louvre_chat_open",
+        BADGE: "louvre_unread_count",
+        LAST_ACTION: "louvre_last_interaction"
+    }
+};
+
+// --- VARIABLES GLOBALES ---
+let elements = {};      // Stockera les éléments du DOM (input, bouton, etc.)
+let idleTimer;          // Variable pour le minuteur technique
+let unreadCount = 0;    // Compteur de messages non lus
+let catchphrases = [];  // Phrases d'accroche chargées depuis le JSON
 
 /**
- * Initialise le chatbot
+ * 1. INITIALISATION
+ * Appelé une fois que le HTML du chatbot est injecté dans la page.
  */
 function initChatbot() {
-    console.log("Initialisation du chatbot...");
+    console.log("🚀 Démarrage du chatbot...");
 
-    chatInput = document.querySelector(".chat-input-area input");
-    chatSendBtn = document.querySelector(".send-btn");
-    chatMessagesBox = document.querySelector(".chat-messages");
-    chatExpandBtn = document.getElementById("expandBtn");
+    // Récupération des éléments du DOM
+    elements = {
+        input: document.querySelector(".chat-input-area input"),
+        sendBtn: document.querySelector(".send-btn"),
+        messagesBox: document.querySelector(".chat-messages"),
+        expandBtn: document.getElementById("expandBtn"),
+        chatWindow: document.getElementById("chatWindow"),
+        toggleBtn: document.querySelector(".chat-toggle-btn")
+    };
 
-    if (!chatInput || !chatSendBtn || !chatMessagesBox) {
-        console.error("❌ Erreur éléments chatbot manquants.");
+    if (!elements.input || !elements.sendBtn || !elements.messagesBox) {
+        console.error("❌ Erreur : Éléments du chatbot introuvables.");
         return;
     }
 
-    // Création du badge de notification
-    const chatBtn = document.querySelector('.chat-toggle-btn');
-    if (chatBtn) {
-        notificationBadge = document.createElement("div");
-        notificationBadge.className = "notification-badge";
-        notificationBadge.innerText = "0";
-        chatBtn.appendChild(notificationBadge);
-    }
+    // Création du badge de notification (rond rouge)
+    createNotificationBadge();
 
-    // --- 1. CHARGEMENT DE L'HISTORIQUE DE SESSION ---
-    // On utilise sessionStorage au lieu de localStorage
+    // Chargement des données existantes (Session)
     loadChatHistory();
+    restoreChatState();
+    loadCatchphrases();
 
-    // --- 1b. CHARGEMENT DES PHRASES D'ACCROCHE ---
-    fetch('catchphrases.json')
-        .then(res => res.json())
-        .then(data => {
-            catchphrases = data;
-        })
-        .catch(err => console.error("Erreur chargement phrases:", err));
+    // Configuration des événements (Clics, Entrée)
+    setupEventListeners();
 
-    // --- 2. RESTAURATION DE L'ÉTAT (OUVERT/FERMÉ) ---
-    const isChatOpen = sessionStorage.getItem("louvre_chat_open") === "true";
-    if (isChatOpen) {
-        openChatInterface(); 
-    }
+    // Gestion du Minuteur (Reprise intelligente au changement de page)
+    restoreIdleTimer();
 
-    // --- 3. ÉVÉNEMENTS ---
-    chatSendBtn.addEventListener("click", () => sendMessage());
-    
-    chatInput.addEventListener("keydown", (e) => {
-        resetIdleTimer();
+    console.log("✅ Chatbot prêt.");
+}
+
+/**
+ * 2. GESTION DES ÉVÉNEMENTS
+ */
+function setupEventListeners() {
+    // Envoi par clic
+    elements.sendBtn.addEventListener("click", () => sendMessage());
+
+    // Envoi par touche Entrée
+    elements.input.addEventListener("keydown", (e) => {
+        resetIdleTimer(); // L'écriture compte comme une activité
         if (e.key === "Enter") {
             e.preventDefault();
             sendMessage();
         }
     });
 
-    if (chatExpandBtn) {
-        chatExpandBtn.addEventListener("click", toggleExpand);
+    // Bouton Agrandir / Réduire
+    if (elements.expandBtn) {
+        elements.expandBtn.addEventListener("click", toggleExpand);
     }
-
-    resetIdleTimer();
-
-    console.log("✅ Chatbot initialisé (Session uniquement).");
 }
 
 /**
- * Ouvre ou ferme le chat
+ * 3. LOGIQUE D'INTERFACE (OUVERTURE / FERMETURE)
  */
+
+// Ouvre ou ferme la fenêtre de chat
 function toggleChat() {
-    const chatWindow = document.getElementById('chatWindow');
-    const chatBtn = document.querySelector('.chat-toggle-btn');
+    if (!elements.chatWindow) return;
+
+    const isOpen = elements.chatWindow.classList.toggle('chat-open');
+    elements.toggleBtn.classList.toggle('btn-active');
     
-    if (chatWindow && chatBtn) {
-        const isNowOpen = chatWindow.classList.toggle('chat-open');
-        chatBtn.classList.toggle('btn-active');
-        
-        // Sauvegarde TEMPORAIRE de l'état
-        sessionStorage.setItem("louvre_chat_open", isNowOpen);
+    // Sauvegarde l'état pour les autres pages
+    sessionStorage.setItem(CONFIG.STORAGE_KEYS.STATE, isOpen);
 
-        // Si on ouvre, on reset les notifications
-        if (isNowOpen) {
-            unreadCount = 0;
-            updateBadge();
-        }
-
-        resetIdleTimer();
+    if (isOpen) {
+        resetBadge();
     }
+    
+    // Une interaction utilisateur réinitialise le timer
+    resetIdleTimer();
 }
 
-/**
- * Fonction helper pour forcer l'ouverture
- */
+// Force l'ouverture (utilisé au chargement si c'était déjà ouvert)
 function openChatInterface() {
-    const chatWindow = document.getElementById('chatWindow');
-    const chatBtn = document.querySelector('.chat-toggle-btn');
-    if (chatWindow) chatWindow.classList.add('chat-open');
-    if (chatBtn) chatBtn.classList.add('btn-active');
-    
-    // Reset notifs
-    unreadCount = 0;
-    updateBadge();
+    elements.chatWindow.classList.add('chat-open');
+    elements.toggleBtn.classList.add('btn-active');
+    resetBadge();
 }
 
-/**
- * Agrandir / Réduire
- */
+// Mode "Grand Écran"
 function toggleExpand() {
-    const chatWindow = document.getElementById('chatWindow');
-    const btn = document.getElementById('expandBtn');
+    elements.chatWindow.classList.toggle('expanded');
+    const isExpanded = elements.chatWindow.classList.contains('expanded');
     
-    if (chatWindow) {
-        chatWindow.classList.toggle('expanded');
-        
-        if (chatWindow.classList.contains('expanded')) {
-            btn.innerHTML = "⤡"; 
-            btn.title = "Réduire";
-        } else {
-            btn.innerHTML = "⤢"; 
-            btn.title = "Agrandir";
-        }
-    }
+    // Change l'icône selon l'état
+    elements.expandBtn.innerHTML = isExpanded ? "⤡" : "⤢";
+    elements.expandBtn.title = isExpanded ? "Réduire" : "Agrandir";
 }
 
 /**
- * Met à jour l'affichage du badge
+ * 4. GESTION DES NOTIFICATIONS (BADGE)
  */
-function updateBadge() {
-    if (!notificationBadge) return;
+function createNotificationBadge() {
+    if (!elements.toggleBtn) return;
     
-    notificationBadge.innerText = unreadCount;
-    if (unreadCount > 0) {
-        notificationBadge.classList.add("visible");
-    } else {
-        notificationBadge.classList.remove("visible");
-    }
+    const badge = document.createElement("div");
+    badge.className = "notification-badge";
+    badge.id = "notifBadge";
+    badge.innerText = "0";
+    elements.toggleBtn.appendChild(badge);
+
+    // Restaure le nombre précédent
+    unreadCount = parseInt(sessionStorage.getItem(CONFIG.STORAGE_KEYS.BADGE) || "0", 10);
+    updateBadgeDisplay();
+}
+
+function updateBadgeDisplay() {
+    const badge = document.getElementById("notifBadge");
+    if (!badge) return;
+
+    badge.innerText = unreadCount;
+    if (unreadCount > 0) badge.classList.add("visible");
+    else badge.classList.remove("visible");
+
+    sessionStorage.setItem(CONFIG.STORAGE_KEYS.BADGE, unreadCount);
+}
+
+function resetBadge() {
+    unreadCount = 0;
+    updateBadgeDisplay();
 }
 
 /**
- * Ajoute un message visuellement ET le sauvegarde si demandé
+ * 5. GESTION DES MESSAGES (AFFICHAGE & FORMATAGE)
  */
 function addMessage(text, sender, duration = null, save = true) {
-    if (!chatMessagesBox) return;
-
     const msgContainer = document.createElement("div");
     msgContainer.className = "message " + sender;
 
-    let formattedText = text;
+    // --- Formatage du texte (Markdown & Liens) ---
+    let formattedText = text
+        // Liens techniques <http...>
+        .replace(/<(https?:\/\/[^>]+)>/g, '<a href="$1" target="_blank">$1</a>')
+        // Liens Markdown [Texte](URL)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+        // Liens bruts (http...)
+        .replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>')
+        // Gras (**texte**)
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        // Italique (*texte*)
+        .replace(/\*(.*?)\*/g, "<em>$1</em>")
+        // Sauts de ligne
+        .replace(/\n/g, "<br>");
 
-    // --- MISE EN FORME (ORDRE IMPORTANT) ---
-
-    // 1. Gestion des liens <https://...> (Format technique LLM)
-    // Le navigateur cache souvent ce qui est entre < > car il croit que c'est une balise.
-    formattedText = formattedText.replace(/<(https?:\/\/[^>]+)>/g, '<a href="$1" target="_blank">$1</a>');
-
-    // 2. Gestion des liens Markdown [Texte](URL)
-    formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-
-    // 3. Gestion des liens bruts (ex: "Allez sur https://louvre.fr")
-    // Le (?<!...) empêche de casser les liens déjà créés aux étapes 1 et 2 (évite le double lien dans le href)
-    formattedText = formattedText.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
-
-    // 4. Gras (**texte**)
-    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-    // 5. Italique (*texte*)
-    formattedText = formattedText.replace(/\*(.*?)\*/g, "<em>$1</em>");
-
-    // 6. Sauts de ligne
-    formattedText = formattedText.replace(/\n/g, "<br>");
-
-    // ---------------------------------------
-
+    // Construction du HTML
     let htmlContent = `<div class="msg-content">${formattedText}</div>`;
 
+    // Ajout du temps d'exécution (si fourni)
     if (duration !== null) {
         const seconds = (duration / 1000).toFixed(2);
         htmlContent += `<span class="exec-time">Généré en ${seconds}s</span>`;
     }
 
     msgContainer.innerHTML = htmlContent;
-    chatMessagesBox.appendChild(msgContainer);
-    chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+    elements.messagesBox.appendChild(msgContainer);
+    elements.messagesBox.scrollTop = elements.messagesBox.scrollHeight;
 
+    // Sauvegarde en session
     if (save) {
-        saveMessageToHistory(text, sender, duration);
+        saveMessageToSession(text, sender, duration);
     }
 }
 
 /**
- * Sauvegarde un message unique dans le SESSION storage
- */
-function saveMessageToHistory(text, sender, duration) {
-    // 1. Récupérer l'existant (Session)
-    let history = JSON.parse(sessionStorage.getItem("louvre_chat_history")) || [];
-    
-    // 2. Ajouter le nouveau
-    history.push({ text, sender, duration });
-    
-    // 3. Réécrire le tout
-    sessionStorage.setItem("louvre_chat_history", JSON.stringify(history));
-}
-
-/**
- * Charge l'historique au démarrage
- */
-function loadChatHistory() {
-    // Récupération depuis la session
-    const history = JSON.parse(sessionStorage.getItem("louvre_chat_history")) || [];
-    
-    if (history.length > 0) {
-        chatMessagesBox.innerHTML = ""; 
-    }
-
-    history.forEach(msg => {
-        addMessage(msg.text, msg.sender, msg.duration, false);
-    });
-}
-
-/**
- * Envoie le message au backend
+ * 6. LOGIQUE DE COMMUNICATION (API)
  */
 async function sendMessage() {
-    resetIdleTimer();
-    const text = chatInput.value.trim();
+    resetIdleTimer(); // On reset le timer car l'utilisateur est actif
+    
+    const text = elements.input.value.trim();
     if (!text) return;
 
+    // 1. Afficher le message utilisateur
     addMessage(text, "user", null, true);
-    chatInput.value = ""; 
+    elements.input.value = ""; 
 
-    // Loader
-    const loadingId = "loading-" + Date.now();
-    const loadingDiv = document.createElement("div");
-    loadingDiv.className = "message bot";
-    loadingDiv.id = loadingId;
-    loadingDiv.innerHTML = `
-        <div class="msg-content">
-            <div class="typing-indicator">
-                <span></span><span></span><span></span>
-            </div>
-        </div>`;
-    
-    chatMessagesBox.appendChild(loadingDiv);
-    chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+    // 2. Afficher l'indicateur de chargement
+    const loadingId = showLoader();
 
     const startTime = performance.now();
 
-    // Préparation de l'historique pour le backend
-    const storedHistory = JSON.parse(sessionStorage.getItem("louvre_chat_history")) || [];
-    // On retire le dernier élément (le message actuel) pour éviter les doublons
-    const historyPayload = storedHistory.slice(0, -1).map(msg => ({
-        role: msg.sender === "bot" ? "assistant" : "user",
-        content: msg.text
-    }));
-
     try {
-        const response = await fetch("/api/chat", {
+        // Préparation de l'historique pour le LLM (sans le message qu'on vient d'envoyer)
+        const historyPayload = getHistoryForAPI();
+
+        // 3. Appel API
+        const response = await fetch(CONFIG.API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: text, history: historyPayload })
         });
 
         const data = await response.json();
-        const endTime = performance.now();
-        const executionTime = endTime - startTime;
+        const executionTime = performance.now() - startTime;
 
-        const loader = document.getElementById(loadingId);
-        if (loader) loader.remove();
+        removeLoader(loadingId);
 
+        // 4. Traitement de la réponse
         if (data.response) {
             addMessage(data.response, "bot", executionTime, true);
-            
-            // Si le chat est fermé, on incrémente le compteur
-            const chatWindow = document.getElementById('chatWindow');
-            if (chatWindow && !chatWindow.classList.contains('chat-open')) {
-                unreadCount++;
-                updateBadge();
-            }
+            incrementBadgeIfClosed();
         } else {
             addMessage("Désolé, je n'ai pas compris.", "bot", executionTime, true);
         }
 
     } catch (err) {
-        const loader = document.getElementById(loadingId);
-        if (loader) loader.remove();
+        removeLoader(loadingId);
         console.error("Erreur API:", err);
         addMessage("❌ Erreur de connexion.", "bot", null, true);
     }
 }
 
 /**
- * Réinitialise le timer d'inactivité (5 minutes)
+ * 7. GESTION DU TIMER D'INACTIVITÉ
+ * Relance le bot si l'utilisateur ne fait rien pendant X secondes.
  */
 function resetIdleTimer() {
     if (idleTimer) clearTimeout(idleTimer);
-    idleTimer = setTimeout(triggerIdleMessage, catchphraseFreq * 60 * 1000);
+
+    // On stocke l'heure de la dernière action
+    sessionStorage.setItem(CONFIG.STORAGE_KEYS.LAST_ACTION, Date.now());
+
+    // On lance le timer
+    idleTimer = setTimeout(triggerIdleMessage, CONFIG.IDLE_TIMEOUT * 1000);
 }
 
-/**
- * Envoie un message de relance automatique
- */
+// Logique intelligente : calcule le temps restant au chargement de la page
+function restoreIdleTimer() {
+    const lastInteraction = sessionStorage.getItem(CONFIG.STORAGE_KEYS.LAST_ACTION);
+    
+    if (lastInteraction) {
+        const elapsed = Date.now() - parseInt(lastInteraction, 10);
+        const remaining = (CONFIG.IDLE_TIMEOUT * 1000) - elapsed;
+
+        if (remaining <= 0) {
+            triggerIdleMessage(); // Le temps est déjà écoulé
+        } else {
+            // On attend seulement le temps restant
+            idleTimer = setTimeout(triggerIdleMessage, remaining);
+        }
+    } else {
+        resetIdleTimer(); // Première visite
+    }
+}
+
+// Fonction déclenchée quand le temps est écoulé
 function triggerIdleMessage() {
-    let message = "Bonjour, comment puis-je vous aider ? Que voulez-vous voir au Louvre ?";
+    // Choix d'une phrase aléatoire
+    let message = "Bonjour, puis-je vous aider ?";
     if (catchphrases.length > 0) {
         message = catchphrases[Math.floor(Math.random() * catchphrases.length)];
     }
 
+    // Envoi du message (Note: pas de vérification anti-doublon comme demandé)
     addMessage(message, "bot", null, true);
+    incrementBadgeIfClosed();
 
-    const chatWindow = document.getElementById('chatWindow');
-    if (chatWindow && !chatWindow.classList.contains('chat-open')) {
-        unreadCount++;
-        updateBadge();
-    }
+    // On relance le cycle
     resetIdleTimer();
+}
+
+/**
+ * 8. FONCTIONS UTILITAIRES & PERSISTANCE
+ */
+
+function loadChatHistory() {
+    const history = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY)) || [];
+    if (history.length > 0) elements.messagesBox.innerHTML = ""; 
+    history.forEach(msg => addMessage(msg.text, msg.sender, msg.duration, false));
+}
+
+function saveMessageToSession(text, sender, duration) {
+    let history = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY)) || [];
+    history.push({ text, sender, duration });
+    sessionStorage.setItem(CONFIG.STORAGE_KEYS.HISTORY, JSON.stringify(history));
+}
+
+function restoreChatState() {
+    const isOpen = sessionStorage.getItem(CONFIG.STORAGE_KEYS.STATE) === "true";
+    if (isOpen) openChatInterface();
+}
+
+function loadCatchphrases() {
+    fetch('catchphrases.json')
+        .then(res => res.json())
+        .then(data => { catchphrases = data; })
+        .catch(() => console.warn("Fichier catchphrases.json non trouvé ou vide."));
+}
+
+function showLoader() {
+    const id = "loading-" + Date.now();
+    const div = document.createElement("div");
+    div.className = "message bot";
+    div.id = id;
+    div.innerHTML = `<div class="msg-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+    elements.messagesBox.appendChild(div);
+    elements.messagesBox.scrollTop = elements.messagesBox.scrollHeight;
+    return id;
+}
+
+function removeLoader(id) {
+    const loader = document.getElementById(id);
+    if (loader) loader.remove();
+}
+
+function getHistoryForAPI() {
+    const stored = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY)) || [];
+    // On prend tout sauf le dernier message (qui est celui qu'on vient d'ajouter visuellement)
+    return stored.slice(0, -1).map(msg => ({
+        role: msg.sender === "bot" ? "assistant" : "user",
+        content: msg.text
+    }));
+}
+
+function incrementBadgeIfClosed() {
+    if (elements.chatWindow && !elements.chatWindow.classList.contains('chat-open')) {
+        unreadCount++;
+        updateBadgeDisplay();
+    }
 }
